@@ -1,6 +1,6 @@
 /*
- * File:        common.h
- * Purpose:     File to be included by all project files
+ * File:		common.h
+ * Purpose:		File to be included by all project files
  *
  * Notes:
  */
@@ -24,8 +24,8 @@
 /*
  * Include the platform specific header file
  */
-#if (defined(TWR_K60N512))
-	#include "k60_tower.h"
+#if (defined(S32K))
+	#include "s32k.h"
 #else
 	#error "No valid platform defined"
 #endif
@@ -33,8 +33,9 @@
 /*
  * Include the cpu specific header file
  */
-#if (defined(CPU_MK60N512VMD100))
-	#include <MK60N512VMD100.h>
+#if (defined(CPU_S32K144))
+	#include <S32K144.h>
+	#include <S32K144_extension.h>
 #else
 	#error "No valid CPU defined"
 #endif
