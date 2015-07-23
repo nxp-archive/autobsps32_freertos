@@ -267,6 +267,7 @@ unsigned long ulReceivedValue;
 
 static void prvSetupHardware( void )
 {
+#if 0 /* TODO: update for S23K */
 	/* Enable the interrupt on SW1. */
 	PORTE_PCR26 = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
 	enable_irq( mainGPIO_E_VECTOR );
@@ -287,6 +288,7 @@ static void prvSetupHardware( void )
 
 	/* Start with LEDs off. */
 	GPIOA_PTOR = ~0U;
+#endif
 }
 /*-----------------------------------------------------------*/
 
