@@ -1,6 +1,6 @@
 /*
  * File:		uart.h
- * Purpose:     Provide common ColdFire UART routines for polled serial IO
+ * Purpose:		Provide common ColdFire UART routines for polled serial IO
  *
  * Notes:
  */
@@ -10,10 +10,10 @@
 
 /********************************************************************/
 
-void uart_init (UART_MemMapPtr, int, int);
-char uart_getchar (UART_MemMapPtr);
-void uart_putchar (UART_MemMapPtr, char);
-int uart_getchar_present (UART_MemMapPtr);
+void uart_init (LPUART_MemMapPtr, int, int);
+char uart_getchar (LPUART_MemMapPtr);
+void uart_putchar (LPUART_MemMapPtr, char);
+int uart_getchar_present (LPUART_MemMapPtr);
 
 /********************************************************************/
 
