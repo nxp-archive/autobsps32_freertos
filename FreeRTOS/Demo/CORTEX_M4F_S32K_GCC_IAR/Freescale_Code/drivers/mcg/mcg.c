@@ -63,38 +63,38 @@ unsigned char pll_init(unsigned char clk_option, unsigned char crystal_val)
 	MCG_C6 = 0x0;
 	/* Select the PLL VCO divider and system clock dividers depending on clocking option */
 	switch (clk_option) {
-		case 0:
-			/* Set system options dividers */
-			/* MCG=PLL, core = MCG, bus = MCG, FlexBus = MCG, Flash clock= MCG/2 */
-			set_sys_dividers(0,0,0,1);
-			/* Set the VCO divider and enable the PLL for 50MHz, LOLIE=0, PLLS=1, CME=0, VDIV=1 */
-			MCG_C6 = MCG_C6_PLLS_MASK | MCG_C6_VDIV(1); /* VDIV = 1 (x25) */
-			pll_freq = 50;
-			break;
-		case 1:
-			/* Set system options dividers */
-			/* MCG=PLL, core = MCG, bus = MCG/2, FlexBus = MCG/2, Flash clock= MCG/4 */
-			set_sys_dividers(0,1,1,3);
-			/* Set the VCO divider and enable the PLL for 100MHz, LOLIE=0, PLLS=1, CME=0, VDIV=26 */
-			MCG_C6 = MCG_C6_PLLS_MASK | MCG_C6_VDIV(26); /* VDIV = 26 (x50) */
-			pll_freq = 100;
-			break;
-		case 2:
-			/* Set system options dividers */
-			/* MCG=PLL, core = MCG, bus = MCG/2, FlexBus = MCG/2, Flash clock= MCG/4 */
-			set_sys_dividers(0,1,1,3);
-			/* Set the VCO divider and enable the PLL for 96MHz, LOLIE=0, PLLS=1, CME=0, VDIV=24 */
-			MCG_C6 = MCG_C6_PLLS_MASK | MCG_C6_VDIV(24); /* VDIV = 24 (x48) */
-			pll_freq = 96;
-			break;
-		case 3:
-			/* Set system options dividers */
-			/* MCG=PLL, core = MCG, bus = MCG, FlexBus = MCG, Flash clock= MCG/2 */
-			set_sys_dividers(0,0,0,1);
-			/* Set the VCO divider and enable the PLL for 48MHz, LOLIE=0, PLLS=1, CME=0, VDIV=0 */
-			MCG_C6 = MCG_C6_PLLS_MASK; /* VDIV = 0 (x24) */
-			pll_freq = 48;
-			break;
+	case 0:
+		/* Set system options dividers */
+		/* MCG=PLL, core = MCG, bus = MCG, FlexBus = MCG, Flash clock= MCG/2 */
+		set_sys_dividers(0,0,0,1);
+		/* Set the VCO divider and enable the PLL for 50MHz, LOLIE=0, PLLS=1, CME=0, VDIV=1 */
+		MCG_C6 = MCG_C6_PLLS_MASK | MCG_C6_VDIV(1); /* VDIV = 1 (x25) */
+		pll_freq = 50;
+		break;
+	case 1:
+		/* Set system options dividers */
+		/* MCG=PLL, core = MCG, bus = MCG/2, FlexBus = MCG/2, Flash clock= MCG/4 */
+		set_sys_dividers(0,1,1,3);
+		/* Set the VCO divider and enable the PLL for 100MHz, LOLIE=0, PLLS=1, CME=0, VDIV=26 */
+		MCG_C6 = MCG_C6_PLLS_MASK | MCG_C6_VDIV(26); /* VDIV = 26 (x50) */
+		pll_freq = 100;
+		break;
+	case 2:
+		/* Set system options dividers */
+		/* MCG=PLL, core = MCG, bus = MCG/2, FlexBus = MCG/2, Flash clock= MCG/4 */
+		set_sys_dividers(0,1,1,3);
+		/* Set the VCO divider and enable the PLL for 96MHz, LOLIE=0, PLLS=1, CME=0, VDIV=24 */
+		MCG_C6 = MCG_C6_PLLS_MASK | MCG_C6_VDIV(24); /* VDIV = 24 (x48) */
+		pll_freq = 96;
+		break;
+	case 3:
+		/* Set system options dividers */
+		/* MCG=PLL, core = MCG, bus = MCG, FlexBus = MCG, Flash clock= MCG/2 */
+		set_sys_dividers(0,0,0,1);
+		/* Set the VCO divider and enable the PLL for 48MHz, LOLIE=0, PLLS=1, CME=0, VDIV=0 */
+		MCG_C6 = MCG_C6_PLLS_MASK; /* VDIV = 0 (x24) */
+		pll_freq = 48;
+		break;
 	}
 	while (!(MCG_S & MCG_S_PLLST_MASK)){}; /* Wait for PLL status bit to set */
 
@@ -138,8 +138,8 @@ unsigned char pll_init(unsigned char clk_option, unsigned char crystal_val)
 
 	/* Set M0PFD through M7PFD to 1 to disable prefetch */
 	FMC_PFAPR |= FMC_PFAPR_M7PFD_MASK | FMC_PFAPR_M6PFD_MASK | FMC_PFAPR_M5PFD_MASK
-				| FMC_PFAPR_M4PFD_MASK | FMC_PFAPR_M3PFD_MASK | FMC_PFAPR_M2PFD_MASK
-				| FMC_PFAPR_M1PFD_MASK | FMC_PFAPR_M0PFD_MASK;
+			   | FMC_PFAPR_M4PFD_MASK | FMC_PFAPR_M3PFD_MASK | FMC_PFAPR_M2PFD_MASK
+			   | FMC_PFAPR_M1PFD_MASK | FMC_PFAPR_M0PFD_MASK;
 
 	/* Set clock dividers to desired value */
 	SIM_CLKDIV1 = SIM_CLKDIV1_OUTDIV1(outdiv1) | SIM_CLKDIV1_OUTDIV2(outdiv2)
@@ -157,35 +157,35 @@ unsigned char pll_init(unsigned char clk_option, unsigned char crystal_val)
 /********************************************************************/
 void mcg_pee_2_blpi(void)
 {
-    uint8 temp_reg;
-    // Transition from PEE to BLPI: PEE -> PBE -> FBE -> FBI -> BLPI
+	uint8 temp_reg;
+	/* Transition from PEE to BLPI: PEE -> PBE -> FBE -> FBI -> BLPI */
 
-    // Step 1: PEE -> PBE
-    MCG_C1 |= MCG_C1_CLKS(2);  // System clock from external reference OSC, not PLL.
-    while (((MCG_S & MCG_S_CLKST_MASK) >> MCG_S_CLKST_SHIFT) != 0x2){};  // Wait for clock status to update.
+	/* Step 1: PEE -> PBE */
+	MCG_C1 |= MCG_C1_CLKS(2);  /* System clock from external reference OSC, not PLL. */
+	while (((MCG_S & MCG_S_CLKST_MASK) >> MCG_S_CLKST_SHIFT) != 0x2){};  /* Wait for clock status to update. */
 
-    // Step 2: PBE -> FBE
-    MCG_C6 &= ~MCG_C6_PLLS_MASK;  // Clear PLLS to select FLL, still running system from ext OSC.
-    while (MCG_S & MCG_S_PLLST_MASK){};  // Wait for PLL status flag to reflect FLL selected.
+	/* Step 2: PBE -> FBE */
+	MCG_C6 &= ~MCG_C6_PLLS_MASK;  /* Clear PLLS to select FLL, still running system from ext OSC. */
+	while (MCG_S & MCG_S_PLLST_MASK){};  /* Wait for PLL status flag to reflect FLL selected. */
 
-    // Step 3: FBE -> FBI
-    MCG_C2 &= ~MCG_C2_LP_MASK;  // FLL remains active in bypassed modes.
-    MCG_C2 |= MCG_C2_IRCS_MASK;  // Select fast (1MHz) internal reference
-    temp_reg = MCG_C1;
-    temp_reg &= ~(MCG_C1_CLKS_MASK | MCG_C1_IREFS_MASK);
-    temp_reg |= (MCG_C1_CLKS(1) | MCG_C1_IREFS_MASK);  // Select internal reference (fast IREF clock @ 1MHz) as MCG clock source.
-    MCG_C1 = temp_reg;
+	/* Step 3: FBE -> FBI */
+	MCG_C2 &= ~MCG_C2_LP_MASK;  /* FLL remains active in bypassed modes. */
+	MCG_C2 |= MCG_C2_IRCS_MASK;  /* Select fast (1MHz) internal reference */
+	temp_reg = MCG_C1;
+	temp_reg &= ~(MCG_C1_CLKS_MASK | MCG_C1_IREFS_MASK);
+	temp_reg |= (MCG_C1_CLKS(1) | MCG_C1_IREFS_MASK);  /* Select internal reference (fast IREF clock @ 1MHz) as MCG clock source. */
+	MCG_C1 = temp_reg;
 
-    while (MCG_S & MCG_S_IREFST_MASK){};  // Wait for Reference Status bit to update.
-    while (((MCG_S & MCG_S_CLKST_MASK) >> MCG_S_CLKST_SHIFT) != 0x1){};  // Wait for clock status bits to update
+	while (MCG_S & MCG_S_IREFST_MASK){};  /* Wait for Reference Status bit to update. */
+	while (((MCG_S & MCG_S_CLKST_MASK) >> MCG_S_CLKST_SHIFT) != 0x1){};  /* Wait for clock status bits to update */
 
-    // Step 4: FBI -> BLPI
-    MCG_C1 |= MCG_C1_IREFSTEN_MASK;  // Keep internal reference clock running in STOP modes.
-    MCG_C2 |= MCG_C2_LP_MASK;  // FLL remains disabled in bypassed modes.
-    while (!(MCG_S & MCG_S_IREFST_MASK)){};  // Wait for Reference Status bit to update.
-    while (((MCG_S & MCG_S_CLKST_MASK) >> MCG_S_CLKST_SHIFT) != 0x1){};  // Wait for clock status bits to update.
+	/* Step 4: FBI -> BLPI */
+	MCG_C1 |= MCG_C1_IREFSTEN_MASK;  /* Keep internal reference clock running in STOP modes. */
+	MCG_C2 |= MCG_C2_LP_MASK;  /* FLL remains disabled in bypassed modes. */
+	while (!(MCG_S & MCG_S_IREFST_MASK)){};  /* Wait for Reference Status bit to update. */
+	while (((MCG_S & MCG_S_CLKST_MASK) >> MCG_S_CLKST_SHIFT) != 0x1){};  /* Wait for clock status bits to update. */
 
-} // end MCG PEE to BLPI
+} /* End MCG PEE to BLPI */
 /********************************************************************/
 void mcg_blpi_2_pee(void)
 {
@@ -230,7 +230,7 @@ void mcg_pbe_2_pee(void)
 	while (((MCG_S & MCG_S_CLKST_MASK) >> MCG_S_CLKST_SHIFT) != 0x3){};
 
 	switch (CORE_CLK_MHZ) {
-		case PLL50:
+	case PLL50:
 		core_clk_khz = 50000;
 		break;
 	case PLL100:
