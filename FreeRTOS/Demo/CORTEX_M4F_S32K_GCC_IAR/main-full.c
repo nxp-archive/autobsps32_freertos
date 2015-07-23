@@ -263,6 +263,7 @@ void main( void )
 
 static void prvCheckTimerCallback( TimerHandle_t xTimer )
 {
+#if 0 /* TODO: update for S23K */
 static long lChangedTimerPeriodAlready = pdFALSE;
 
 	/* Check the standard demo tasks are running without error. Latch the
@@ -343,19 +344,23 @@ static long lChangedTimerPeriodAlready = pdFALSE;
 			xTimerChangePeriod( xCheckTimer, ( mainERROR_CHECK_TIMER_PERIOD_MS ), mainDONT_BLOCK );
 		}
 	}
+#endif
 }
 /*-----------------------------------------------------------*/
 
 static void prvButtonLEDTimerCallback( TimerHandle_t xTimer )
 {
+#if 0 /* TODO: update for S23K */
 	/* The timer has expired - so no button pushes have occurred in the last
 	five seconds - turn the LED off. */
 	vParTestSetLED( mainTIMER_CONTROLLED_LED, pdFALSE );
+#endif
 }
 /*-----------------------------------------------------------*/
 
 static void prvLEDTimerCallback( TimerHandle_t xTimer )
 {
+#if 0 /* TODO: update for S23K */
 unsigned long ulLED;
 
 	/* This callback is shared by two timers, so the parameter is used to
@@ -363,13 +368,15 @@ unsigned long ulLED;
 	timer. */
 	ulLED = ( unsigned long ) pvTimerGetTimerID( xTimer );
 	vParTestToggleLED( ulLED );
+#endif
 }
 /*-----------------------------------------------------------*/
 
 /* The ISR executed when the user button is pushed. */
 void vPort_E_ISRHandler( void )
 {
-portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+#if 0 /* TODO: update for S23K */
+	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
 	/* The button was pushed, so ensure the LED is on before resetting the
 	LED timer.  The LED timer will turn the LED off if the button is not
@@ -390,11 +397,13 @@ portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	xHigherPriorityTaskWoken will now be set to pdTRUE, and calling
 	portEND_SWITCHING_ISR() will ensure the unblocked task runs next. */
 	portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+#endif
 }
 /*-----------------------------------------------------------*/
 
 static void prvSetupHardware( void )
 {
+#if 0 /* TODO: update for S23K */
 	/* Enable the interrupt on SW1. */
 	taskDISABLE_INTERRUPTS();
 	PORTE_PCR26 = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
@@ -406,6 +415,7 @@ static void prvSetupHardware( void )
 
 	/* Configure the LED outputs. */
 	vParTestInitialise();
+#endif
 }
 /*-----------------------------------------------------------*/
 

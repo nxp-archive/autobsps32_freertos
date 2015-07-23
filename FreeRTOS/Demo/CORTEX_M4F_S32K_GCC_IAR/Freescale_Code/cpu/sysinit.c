@@ -7,9 +7,11 @@
  *
  */
 
+#if 0
 #include "common.h"
 #include "sysinit.h"
 #include "uart.h"
+#endif
 
 /********************************************************************/
 
@@ -21,15 +23,16 @@ int periph_clk_khz;
 /********************************************************************/
 void sysinit (void)
 {
-		/*
-		 * Enable all of the port clocks. These have to be enabled to configure
-		 * pin muxing options, so most code will need all of these on anyway.
-		 */
-		SIM_SCGC5 |= (SIM_SCGC5_PORTA_MASK
-					| SIM_SCGC5_PORTB_MASK
-					| SIM_SCGC5_PORTC_MASK
-					| SIM_SCGC5_PORTD_MASK
-					| SIM_SCGC5_PORTE_MASK );
+#if 0 /* TODO: check and update for S32K */
+	/*
+	 * Enable all of the port clocks. These have to be enabled to configure
+	 * pin muxing options, so most code will need all of these on anyway.
+	 */
+	SIM_SCGC5 |= (SIM_SCGC5_PORTA_MASK
+			  | SIM_SCGC5_PORTB_MASK
+			  | SIM_SCGC5_PORTC_MASK
+			  | SIM_SCGC5_PORTD_MASK
+			  | SIM_SCGC5_PORTE_MASK );
 
 	/* Ramp up the system clock */
 	core_clk_mhz = pll_init(CORE_CLK_MHZ, REF_CLK);
@@ -110,23 +113,28 @@ void sysinit (void)
 		uart_init (TERM_PORT, core_clk_khz, TERMINAL_BAUD);
 	else
 		uart_init (TERM_PORT, periph_clk_khz, TERMINAL_BAUD);
+#endif
 }
 /********************************************************************/
 void trace_clk_init(void)
 {
+#if 0
 	/* Set the trace clock to the core clock frequency */
 	SIM_SOPT2 |= SIM_SOPT2_TRACECLKSEL_MASK;
 
 	/* Enable the TRACE_CLKOUT pin function on PTA6 (alt7 function) */
 	PORTA_PCR6 = ( PORT_PCR_MUX(0x7));
+#endif
 }
 /********************************************************************/
 void fb_clk_init(void)
 {
+#if 0
 	/* Enable the clock to the FlexBus module */
 	SIM_SCGC7 |= SIM_SCGC7_FLEXBUS_MASK;
 
 	/* Enable the FB_CLKOUT function on PTC3 (alt5 function) */
 	PORTC_PCR3 = ( PORT_PCR_MUX(0x5));
+#endif
 }
 /********************************************************************/
