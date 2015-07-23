@@ -55,31 +55,31 @@ void flash_identify (void)
     /* Get the flash parameter version */
 
 	/* Write the flash FCCOB registers with the values for a read resource command */
-	FTFL_FCCOB0 = 0x03;
-	FTFL_FCCOB1 = 0x00;
-	FTFL_FCCOB2 = 0x00;
-	FTFL_FCCOB3 = 0x00;
-	FTFL_FCCOB8 = 0x01;
+	FTFE_FCCOB0 = 0x03;
+	FTFE_FCCOB1 = 0x00;
+	FTFE_FCCOB2 = 0x00;
+	FTFE_FCCOB3 = 0x00;
+	FTFE_FCCOB8 = 0x01;
 
 	/* All required FCCOBx registers are written, so launch the command */
-	FTFL_FSTAT = FTFL_FSTAT_CCIF_MASK;
+	FTFE_FSTAT = FTFE_FSTAT_CCIF_MASK;
 
 	/* Wait for the command to complete */
-	while(!(FTFL_FSTAT & FTFL_FSTAT_CCIF_MASK));
+	while(!(FTFE_FSTAT & FTFE_FSTAT_CCIF_MASK));
 
 	/* Get the flash version ID */
 
 	/* Write the flash FCCOB registers with the values for a read resource command */
-	FTFL_FCCOB0 = 0x03;
-	FTFL_FCCOB1 = 0x00;
-	FTFL_FCCOB2 = 0x00;
-	FTFL_FCCOB3 = 0x04;
-	FTFL_FCCOB8 = 0x01;
+	FTFE_FCCOB0 = 0x03;
+	FTFE_FCCOB1 = 0x00;
+	FTFE_FCCOB2 = 0x00;
+	FTFE_FCCOB3 = 0x04;
+	FTFE_FCCOB8 = 0x01;
 
 	/* All required FCCOBx registers are written, so launch the command */
-	FTFL_FSTAT = FTFL_FSTAT_CCIF_MASK;
+	FTFE_FSTAT = FTFE_FSTAT_CCIF_MASK;
 
 	/* Wait for the command to complete */
-	while(!(FTFL_FSTAT & FTFL_FSTAT_CCIF_MASK));
+	while(!(FTFE_FSTAT & FTFE_FSTAT_CCIF_MASK));
 }
 /********************************************************************/
