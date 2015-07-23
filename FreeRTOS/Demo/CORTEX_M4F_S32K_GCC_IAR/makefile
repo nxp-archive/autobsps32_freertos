@@ -48,7 +48,7 @@ LINK := $(IAR_PATH)/arm/bin/ilinkarm
 # Assemble/compile/link flags
 ASFLAGS := --cpu Cortex-M4F --cpu_mode thumb -g
 CFLAGS  := -On -e --cpu=Cortex-M4F --thumb --no_wrap_diagnostics --debug
-CFLAGS  += -DTWR_K60N512 -DIAR --no_system_include
+CFLAGS  += -DS32K -DIAR --no_system_include
 LDFLAGS := --no_wrap_diagnostics --skip_dynamic_initialization
 LDFLAGS += --config $(DIR_LINKER)/512KB_Pflash.icf -L $(IAR_PATH)/arm/lib
 LDFLAGS += --map $(PROJECT).map --entry __iar_program_start
@@ -82,10 +82,10 @@ LINK := $(GCC_PATH)/bin/arm-none-eabi-gcc
 ASFLAGS := -x assembler-with-cpp -mcpu=cortex-m4 -mthumb -c
 ASFLAGS += -g3 -gdwarf-2 -nostdlib
 
-OPTIMIZATION := -O0
+OPTIMIZATION := -Os
 CFLAGS  :=  $(OPTIMIZATION) -Wall -c -fmessage-length=0 -fplan9-extensions
 CFLAGS  += -fomit-frame-pointer -mfloat-abi=softfp
-CFLAGS  += -mcpu=cortex-m4 -g3 -mthumb -DTWR_K60N512 -DGCC
+CFLAGS  += -mcpu=cortex-m4 -g3 -mthumb -DS32K -DGCC
 LDFLAGS := -gdwarf-2 -mcpu=cortex-m4 -g3 -mthumb --entry __startup
 LDFLAGS += -T$(DIR_LINKER)/512KB_Pflash.ld -Wl,-Map,$(PROJECT).map
 LDFLAGS += -specs=nosys.specs
@@ -101,7 +101,8 @@ endif
 # List of the common source files
 SRC_ASM += $(DIR_COMPILER)/$(compiler)/crt0.s
 SRC_C   := $(DIR_CPU)/arm_cm4.c $(DIR_MEM)/heap_2.c $(DIR_SRC)/list.c
-SRC_C   += $(DIR_MCG)/mcg.c $(DIR_CM4F)/port.c
+# SRC_C   += $(DIR_MCG)/mcg.c $(DIR_CM4F)/port.c
+SRC_C   += $(DIR_CM4F)/port.c
 SRC_C   += $(DIR_CPU)/start.c $(DIR_SRC)/queue.c $(DIR_COMMON)/startup.c
 SRC_C   += $(DIR_CPU)/sysinit.c $(DIR_SRC)/timers.c $(DIR_SRC)/tasks.c
 SRC_C   += $(DIR_UART)/uart.c $(DIR_CPU)/vectors.c $(DIR_WDOG)/wdog.c
@@ -110,7 +111,7 @@ SRC_C   += $(DIR_UART)/uart.c $(DIR_CPU)/vectors.c $(DIR_WDOG)/wdog.c
 
 ifeq ($(mode),full)
 
-SRC_C += ParTest.c
+# SRC_C += ParTest.c
 SRC_C += $(DIR_MIN)/BlockQ.c $(DIR_MIN)/PollQ.c $(DIR_MIN)/semtest.c
 SRC_C += $(DIR_MIN)/blocktim.c $(DIR_MIN)/countsem.c $(DIR_MIN)/GenQTest.c
 SRC_C += $(DIR_MIN)/QPeek.c $(DIR_MIN)/recmutex.c $(DIR_MIN)/TimerDemo.c
