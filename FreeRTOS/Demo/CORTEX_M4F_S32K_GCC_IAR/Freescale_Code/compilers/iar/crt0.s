@@ -9,9 +9,13 @@
 ;         AREA   Crt0, CODE, READONLY      ; name this block of code
 
 
-
   	SECTION .noinit : CODE
   	EXPORT  __startup
+	EXTERN __vector_table
+	EXTERN  __BOOT_STACK_ADDRESS
+
+VTOR_REG EQU 0xE000ED08
+
 __startup
 
 	MOV     r0,#0                   ; Initialize the GPRs
@@ -27,6 +31,14 @@ __startup
 	MOV     r10,#0
 	MOV     r11,#0
 	MOV     r12,#0
+	/* Setup only for FPGA */
+	LDR     r13, =__BOOT_STACK_ADDRESS
+
+	/* Relocate vector table to RAM */
+	LDR  r0, =VTOR_REG
+	LDR  r1, =__vector_table
+	STR  r1,[r0]
+
         import start
         BL      start                  ; call the C code
 __done
