@@ -34,7 +34,8 @@ ifeq ($(compiler),iar)
 
 # Environment variable IARARM_7.2_PATH must be set
 # Spaces are not allowed in the path
-IAR_PATH := $(subst \,/,$(IARARM_7.2_PATH))
+# IAR_PATH := $(subst \,/,$(IARARM_7.2_PATH))
+IAR_PATH := "C:/Program Files (x86)/IAR Systems/Embedded Workbench 7.2"
 
 # IAR specific directory and .s file
 DIR_CM4F := $(DIR_SRC)/portable/IAR/ARM_CM4F
@@ -50,8 +51,18 @@ ASFLAGS := --cpu Cortex-M4F --cpu_mode thumb -g
 CFLAGS  := -On -e --cpu=Cortex-M4F --thumb --no_wrap_diagnostics --debug
 CFLAGS  += -DS32K -DIAR --no_system_include
 LDFLAGS := --no_wrap_diagnostics --skip_dynamic_initialization
-LDFLAGS += --config $(DIR_LINKER)/512KB_Pflash.icf -L $(IAR_PATH)/arm/lib
-LDFLAGS += --map $(PROJECT).map --entry __iar_program_start
+LDFLAGS += -L $(IAR_PATH)/arm/lib --map $(PROJECT).map
+
+ifeq ($(load_type),ram)
+
+LDFLAGS += --entry __startup --config $(DIR_LINKER)/512KB_PRAM.icf
+
+else
+
+CFLAGS += -DFLASH
+LDFLAGS += --entry __iar_program_start --config $(DIR_LINKER)/512KB_Pflash.icf
+
+endif
 
 # IAR related includes
 INCLUDES := -I$(IAR_PATH)/arm/inc
@@ -87,9 +98,19 @@ CFLAGS  :=  $(OPTIMIZATION) -Wall -c -fmessage-length=0 -fplan9-extensions
 CFLAGS  += -fomit-frame-pointer -mfloat-abi=softfp
 CFLAGS  += -mcpu=cortex-m4 -g3 -mthumb -DS32K -DGCC
 LDFLAGS := -gdwarf-2 -mcpu=cortex-m4 -g3 -mthumb --entry __startup
-LDFLAGS += -T$(DIR_LINKER)/512KB_Pflash.ld -Wl,-Map,$(PROJECT).map
-LDFLAGS += -specs=nosys.specs
+LDFLAGS += -Wl,-Map,$(PROJECT).map -specs=nosys.specs
 LDFLAGS += -L $(GCC_PATH)/arm-none-eabi/lib/armv7-m
+
+ifeq ($(load_type),ram)
+
+LDFLAGS += -T$(DIR_LINKER)/512KB_PRAM.ld
+
+else
+
+CFLAGS += -DFLASH
+LDFLAGS += -T$(DIR_LINKER)/512KB_Pflash.ld
+
+endif
 
 # GCC related includes
 INCLUDES := -I$(GCC_PATH)/arm-none-eabi/include
@@ -159,4 +180,4 @@ $(EXE): $(OBJECTS)
 
 .PHONY: clean
 clean:
-	rm $(OBJECTS) $(EXE) $(PROJECT).map
+	rm -f $(OBJECTS) $(EXE) $(PROJECT).map
