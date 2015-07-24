@@ -80,6 +80,7 @@ extern "C"{
                                  STRUCTURES AND OTHER TYPEDEFS
 ==================================================================================================*/
 
+#if !defined(IAR)
 /**
 @brief Unsigned 8 bit integer with range of 0 ..+255 (0x00..0xFF) -
        8 bit
@@ -161,6 +162,8 @@ typedef float float32;
 @brief 64bit long floating point data type
 */
 typedef double float64;
+
+#endif
 
 /**
 @brief Unsigned pointer compatible type.
