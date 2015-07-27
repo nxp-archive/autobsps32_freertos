@@ -5,21 +5,27 @@ STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x0400;
 
 MEMORY
 {
-	VECTOR_region	(RX):	ORIGIN = 0X1FFF8000, LENGTH = 0x00000410
-	RAM_region		(RW):	ORIGIN = 0x1FFF8410, LENGTH = 0x00007BF0
-	RAM2_region		(RW):	ORIGIN = 0x20000000, LENGTH = 0x00007FFF
+	VECTOR_region	(RX):	ORIGIN = 0x00000000, LENGTH = 0x00000410
+	ROM_region		(RX):	ORIGIN = 0x00000410, LENGTH = 0x0007FBF0
+	RAM_region		(RW):	ORIGIN = 0x1FFF0410, LENGTH = 0x0000FBF0
+	RAM2_region		(RW):	ORIGIN = 0x20000000, LENGTH = 0x00010000
 }
 
 SECTIONS
 {
+	__VECTOR_TABLE = 0x00000000;
+	__VECTOR_RAM = 0x1FFF0000;
+
 	.intvec :
 	{
 		__vector_table = .;
 		. = ALIGN (0x4);
+        /* KEEP(*(.vectors_rom))
+        . = ALIGN (0x4); */
 	} > VECTOR_region
 
-	.text :
-	{
+    .text :
+    {
 		. = ALIGN(4);
 		*(.text)                 /* .text sections (code) */
 		*(.text*)                /* .text* sections (code) */
@@ -31,19 +37,19 @@ SECTIONS
 		KEEP (*(.init))
 		KEEP (*(.fini))
 		. = ALIGN(4);
-	} > RAM_region
+    } > ROM_region
 
 	.ARM.extab :
 	{
 		*(.ARM.extab* .gnu.linkonce.armextab.*)
-	} > RAM_region
+	} > ROM_region
 
 	.ARM :
 	{
 		__exidx_start = .;
 		*(.ARM.exidx*)
 		__exidx_end = .;
-	} > RAM_region
+	} > ROM_region
 
 	.ctors :
 	{
@@ -67,7 +73,7 @@ SECTIONS
 		KEEP (*(SORT(.ctors.*)))
 		KEEP (*(.ctors))
 		__CTOR_END__ = .;
-	} > RAM_region
+	} > ROM_region
 
 	.dtors :
 	{
@@ -78,14 +84,14 @@ SECTIONS
 		KEEP (*(SORT(.dtors.*)))
 		KEEP (*(.dtors))
 		__DTOR_END__ = .;
-	} > RAM_region
+	} > ROM_region
 
 	.preinit_array :
 	{
 		PROVIDE_HIDDEN (__preinit_array_start = .);
 		KEEP (*(.preinit_array*))
 		PROVIDE_HIDDEN (__preinit_array_end = .);
-	} > RAM_region
+	} > ROM_region
 
 	.init_array :
 	{
@@ -93,7 +99,7 @@ SECTIONS
 		KEEP (*(SORT(.init_array.*)))
 		KEEP (*(.init_array*))
 		PROVIDE_HIDDEN (__init_array_end = .);
-	} > RAM_region
+	} > ROM_region
 
 	.fini_array :
 	{
@@ -101,9 +107,11 @@ SECTIONS
 		KEEP (*(SORT(.fini_array.*)))
 		KEEP (*(.fini_array*))
 		PROVIDE_HIDDEN (__fini_array_end = .);
-	} > RAM_region
+	} > ROM_region
 
-	.data :
+	__DATA_ROM = .;
+
+	.data : AT(__DATA_ROM)
 	{
 		. = ALIGN(4);
 		__DATA_RAM = .;
@@ -113,7 +121,9 @@ SECTIONS
 		KEEP(*(.jcr*))
 		. = ALIGN(4);
 		__data_end__ = .;        /* define a global symbol at data end */
-	} > RAM2_region
+	} > RAM_region
+
+	__DATA_END = __DATA_ROM + (__data_end__ - __data_start__);
 
 	/* Uninitialized data section */
 	.bss :
@@ -128,7 +138,7 @@ SECTIONS
 		. = ALIGN(4);
 		__bss_end__ = .;
 		__END_BSS = .;
-	} > RAM2_region
+	} > RAM_region
 
 	.heap :
 	{
