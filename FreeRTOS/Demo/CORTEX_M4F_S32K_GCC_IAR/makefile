@@ -8,7 +8,6 @@ DIR_PLATFORM := Freescale_Code/platform
 DIR_LINKER   := $(DIR_COMPILER)/$(compiler)/linker
 DIR_COMMON   := Freescale_Code/common
 DIR_CPU      := Freescale_Code/cpu
-DIR_MCG      := Freescale_Code/drivers/mcg
 DIR_UART     := Freescale_Code/drivers/uart
 DIR_WDOG     := Freescale_Code/drivers/wdog
 DIR_SRC      := ../../Source
@@ -24,6 +23,17 @@ compilers_list := iar gcc
 # Compiler checking
 ifneq ($(filter $(compiler),$(compilers_list)),$(compiler))
 $(error Undefined compiler type: '$(compiler)', use one from: $(compilers_list))
+endif
+
+# Default load type
+load_type := ram
+
+# List of supported load types
+load_types := ram flash
+
+# Load type checking
+ifneq ($(filter $(load_type),$(load_types)),$(load_type))
+$(error Undefined load type: '$(load_type)', use one from: $(load_types))
 endif
 
 ###############################################################################
@@ -52,15 +62,16 @@ CFLAGS  := -On -e --cpu=Cortex-M4F --thumb --no_wrap_diagnostics --debug
 CFLAGS  += -DS32K -DIAR --no_system_include
 LDFLAGS := --no_wrap_diagnostics --skip_dynamic_initialization
 LDFLAGS += -L $(IAR_PATH)/arm/lib --map $(PROJECT).map
+LDFLAGS += --config $(DIR_LINKER)/512KB_P$(load_type).icf
 
 ifeq ($(load_type),ram)
 
-LDFLAGS += --entry __startup --config $(DIR_LINKER)/512KB_PRAM.icf
+LDFLAGS += --entry __startup
 
 else
 
-CFLAGS += -DFLASH
-LDFLAGS += --entry __iar_program_start --config $(DIR_LINKER)/512KB_Pflash.icf
+CFLAGS += -DAPP_FLASH
+LDFLAGS += --entry __iar_program_start
 
 endif
 
@@ -100,15 +111,11 @@ CFLAGS  += -mcpu=cortex-m4 -g3 -mthumb -DS32K -DGCC
 LDFLAGS := -gdwarf-2 -mcpu=cortex-m4 -g3 -mthumb --entry __startup
 LDFLAGS += -Wl,-Map,$(PROJECT).map -specs=nosys.specs
 LDFLAGS += -L $(GCC_PATH)/arm-none-eabi/lib/armv7-m
+LDFLAGS += -T$(DIR_LINKER)/512KB_P$(load_type).ld
 
-ifeq ($(load_type),ram)
+ifeq ($(load_type),flash)
 
-LDFLAGS += -T$(DIR_LINKER)/512KB_PRAM.ld
-
-else
-
-CFLAGS += -DFLASH
-LDFLAGS += -T$(DIR_LINKER)/512KB_Pflash.ld
+CFLAGS += -DAPP_FLASH
 
 endif
 
@@ -122,7 +129,6 @@ endif
 # List of the common source files
 SRC_ASM += $(DIR_COMPILER)/$(compiler)/crt0.s
 SRC_C   := $(DIR_CPU)/arm_cm4.c $(DIR_MEM)/heap_2.c $(DIR_SRC)/list.c
-# SRC_C   += $(DIR_MCG)/mcg.c $(DIR_CM4F)/port.c
 SRC_C   += $(DIR_CM4F)/port.c
 SRC_C   += $(DIR_CPU)/start.c $(DIR_SRC)/queue.c $(DIR_COMMON)/startup.c
 SRC_C   += $(DIR_CPU)/sysinit.c $(DIR_SRC)/timers.c $(DIR_SRC)/tasks.c
@@ -158,7 +164,6 @@ INCLUDES += -I$(DIR_CM4F)
 INCLUDES += -I$(DIR_COMMON)
 INCLUDES += -I$(DIR_CPU)
 INCLUDES += -I$(DIR_UART)
-INCLUDES += -I$(DIR_MCG)
 INCLUDES += -I$(DIR_WDOG)
 INCLUDES += -I$(DIR_PLATFORM)
 INCLUDES += -I$(DIR_COMPILER)/$(compiler)
