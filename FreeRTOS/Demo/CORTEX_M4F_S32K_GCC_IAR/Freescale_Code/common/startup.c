@@ -24,7 +24,7 @@ common_startup(void)
 
 	uint8 * bss_start, * bss_end;
 
-	#if (defined(FLASH))
+	#if (defined(APP_FLASH))
 		#if (defined(CW))
 			extern char __START_BSS[];
 			extern char __END_BSS[];
