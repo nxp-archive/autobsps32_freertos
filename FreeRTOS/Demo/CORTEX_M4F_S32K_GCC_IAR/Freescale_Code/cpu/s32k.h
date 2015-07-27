@@ -8,8 +8,6 @@
 #ifndef __S32K_H__
 #define __S32K_H__
 
-#include "mcg.h"
-
 /********************************************************************/
 
 /* Global defines to use for all boards */
