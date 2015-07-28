@@ -1,0 +1,80 @@
+; Script for programming of KFA (S32K144).
+;
+; $Author: Marius Rotaru $
+; $Date: 2015-04-15 $
+; This file contains sample code only. It is not part of the production code deliverables
+
+;========================================================================
+LOCAL &load_to
+LOCAL &load_params
+LOCAL &core_no
+LOCAL &rchw
+
+ENTRY &load_to &load_params &core_no
+
+&optimizeFLSMODE=0
+&optimizeSECTORS=0
+&optimizeRAM=0
+&optimizePLL=0
+
+;=========================================================================
+; Variables settings
+;=========================================================================
+
+;=========================================================================
+; System settings
+;=========================================================================
+;cpu settings - cortexm4, rayleigh
+system.reset
+SYSTEM.CONFIG.DEBUGPORTTYPE SWD
+SYStem.Option TRST off
+SYStem.Option ResBreak off
+SYStem.Option WaitReset ON
+SYStem.CPU CortexM4F
+;SYStem.CONFIG MEMORYACCESSPORT 3.
+SYStem.JtagClock 100KHz
+sys.up
+
+SYStem.OPTION DUALPORT ON
+SYStem.Option DisMode ACCESS
+
+
+;disable wdg
+;data.set 0x40003010 %long 0xc520
+;data.set 0x40003010 %long 0xd928
+;data.set 0x40003000 %long 0xFf00010A
+
+
+;=========================================================================
+; set-up system clock initialization
+;=========================================================================
+
+;=========================================================================
+; RAM initialization
+;=========================================================================
+if &optimizeRAM==1
+(
+    print "Starting RAM initialization:"
+    ; Initialize internal SRAM (32KB)
+    Data.Set A:0X1FFF8000--0X20007FFF  %Quad 0
+)
+else
+(
+    Data.Set A:0X1FFF8000--0X20007FFF  %Quad 0
+)
+
+
+;TrOnchip.Set CORERESET OFF
+; initialize internam SRAM
+Data.LOAD.auto *
+
+WinCLEAR
+;WinPOS 84.125 0.0 63. 41. 0. 0. W001
+;Per , /SPOTLIGHT
+
+;WinPOS 84.25 45.0 63. 12. 0. 0. W000
+;Register /SPOTLIGHT
+
+ENDDO
+
+
