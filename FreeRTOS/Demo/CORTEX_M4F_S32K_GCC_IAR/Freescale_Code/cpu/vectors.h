@@ -17,7 +17,7 @@ extern void PendSV_Handler( void );
 extern void SysTick_Handler( void );
 
 /* The button interrupt. */
-extern void vPort_E_ISRHandler( void );
+extern void vPort_C_ISRHandler( void );
 
 /* Function prototype for default_isr in vectors.c */
 void default_isr(void);
@@ -110,9 +110,9 @@ extern void __iar_program_start(void);
 #define VECTOR_074      default_isr         /* 0x0000_0128 74    58     Low Power Timer                                                  */
 #define VECTOR_075      default_isr         /* 0x0000_012C 75    59     Port control module     Pin Detect (Port A)                      */
 #define VECTOR_076      default_isr         /* 0x0000_0130 76    60     Port control module     Pin Detect (Port B)                      */
-#define VECTOR_077      default_isr         /* 0x0000_0134 77    61     Port control module     Pin Detect (Port C)                      */
+#define VECTOR_077      vPort_C_ISRHandler  /* 0x0000_0134 77    61     Port control module     Pin Detect (Port C)                      */
 #define VECTOR_078      default_isr         /* 0x0000_0138 78    62     Port control module     Pin Detect (Port D)                      */
-#define VECTOR_079      vPort_E_ISRHandler  /* 0x0000_013C 79    63     Port control module     Pin Detect (Port E)                      */
+#define VECTOR_079      default_isr         /* 0x0000_013C 79    63     Port control module     Pin Detect (Port E)                      */
 #define VECTOR_080      default_isr         /* 0x0000_0140 80    64     Software         Software interrupt                              */
 #define VECTOR_081      default_isr         /* 0x0000_0144 81    65                                                                      */
 #define VECTOR_082      default_isr         /* 0x0000_0148 82    66                                                                      */
