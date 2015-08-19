@@ -36,6 +36,11 @@ ifneq ($(filter $(load_type),$(load_types)),$(load_type))
 $(error Undefined load type: '$(load_type)', use one from: $(load_types))
 endif
 
+##############################################################################
+# Please replace -DAPP_CFLAG -DCORE_CFLAG -DAPP_ASFLAG -DCORE_ASFLAG
+# with the flags needed by your project
+###############################################################################
+
 ###############################################################################
 # IAR compiler settings
 ###############################################################################
@@ -48,8 +53,8 @@ ifeq ($(compiler),iar)
 IAR_PATH := "C:/Program Files (x86)/IAR Systems/Embedded Workbench 7.2"
 
 # IAR specific directory and .s file
-DIR_CM4F := $(DIR_SRC)/portable/IAR/ARM_CM4F
-SRC_ASM  := $(DIR_CM4F)/portasm.s
+DIR_CM4F     := $(DIR_SRC)/portable/IAR/ARM_CM4F
+SRC_CORE_ASM := $(DIR_CM4F)/portasm.s
 
 # Compiler/Assembler/Linker Paths
 CC   := $(IAR_PATH)/arm/bin/iccarm
@@ -57,12 +62,18 @@ ASM  := $(IAR_PATH)/arm/bin/iasmarm
 LINK := $(IAR_PATH)/arm/bin/ilinkarm
 
 # Assemble/compile/link flags
-ASFLAGS := --cpu Cortex-M4F --cpu_mode thumb -g
-CFLAGS  := -On -e --cpu=Cortex-M4F --thumb --no_wrap_diagnostics --debug
-CFLAGS  += -DS32K -DIAR --no_system_include
-LDFLAGS := --no_wrap_diagnostics --skip_dynamic_initialization
-LDFLAGS += -L $(IAR_PATH)/arm/lib --map $(PROJECT).map
-LDFLAGS += --config $(DIR_LINKER)/512KB_P$(load_type).icf
+ASFLAGS      := --cpu Cortex-M4F --cpu_mode thumb -g
+APP_ASFLAGS  := -DAPP_ASFLAG
+CORE_ASFLAGS := -DCORE_ASFLAG
+
+CFLAGS       := -On -e --cpu=Cortex-M4F --thumb --no_wrap_diagnostics --debug
+CFLAGS       += -DS32K -DIAR --no_system_include
+APP_CFLAGS   := -DAPP_CFLAG
+CORE_CFLAGS  := -DCORE_CFLAG
+
+LDFLAGS      := --no_wrap_diagnostics --skip_dynamic_initialization
+LDFLAGS      += -L $(IAR_PATH)/arm/lib --map $(PROJECT).map
+LDFLAGS      += --config $(DIR_LINKER)/512KB_P$(load_type).icf
 
 ifeq ($(load_type),ram)
 
@@ -70,7 +81,7 @@ LDFLAGS += --entry __startup
 
 else
 
-CFLAGS += -DAPP_FLASH
+CFLAGS  += -DAPP_FLASH
 LDFLAGS += --entry __iar_program_start
 
 endif
@@ -93,25 +104,30 @@ GCC_PATH := $(subst \,/,$(GCC_4.9_PATH))
 
 # GCC specific directory
 DIR_CM4F := $(DIR_SRC)/portable/GCC/ARM_CM4F
-SRC_ASM  :=
 
-# Compiler/Assembler/Linker Paths
+# Compiler/Assembler/Linker paths
 CC   := $(GCC_PATH)/bin/arm-none-eabi-gcc
 ASM  := $(GCC_PATH)/bin/arm-none-eabi-gcc
 LINK := $(GCC_PATH)/bin/arm-none-eabi-gcc
 
-# Assemble/compile/link flags
-ASFLAGS := -x assembler-with-cpp -mcpu=cortex-m4 -mthumb -c
-ASFLAGS += -g3 -gdwarf-2 -nostdlib
+# Assemble/Compile/Link flags
+ASFLAGS      := -x assembler-with-cpp -mcpu=cortex-m4 -mthumb -c
+ASFLAGS      += -g3 -gdwarf-2 -nostdlib
+APP_ASFLAGS  := -DAPP_ASFLAG
+CORE_ASFLAGS := -DCORE_ASFLAG
 
 OPTIMIZATION := -Os
-CFLAGS  :=  $(OPTIMIZATION) -Wall -c -fmessage-length=0 -fplan9-extensions
-CFLAGS  += -fomit-frame-pointer -mfloat-abi=softfp
-CFLAGS  += -mcpu=cortex-m4 -g3 -mthumb -DS32K -DGCC
-LDFLAGS := -gdwarf-2 -mcpu=cortex-m4 -g3 -mthumb --entry __startup
-LDFLAGS += -Wl,-Map,$(PROJECT).map -specs=nosys.specs
-LDFLAGS += -L $(GCC_PATH)/arm-none-eabi/lib/armv7-m
-LDFLAGS += -T$(DIR_LINKER)/512KB_P$(load_type).ld
+
+CFLAGS       :=  $(OPTIMIZATION) -Wall -c -fmessage-length=0 -fplan9-extensions
+CFLAGS       += -fomit-frame-pointer -mfloat-abi=softfp
+CFLAGS       += -mcpu=cortex-m4 -g3 -mthumb -DS32K -DGCC
+APP_CFLAGS   := -DAPP_CFLAG
+CORE_CFLAGS  := -DCORE_CFLAG
+
+LDFLAGS      := -gdwarf-2 -mcpu=cortex-m4 -g3 -mthumb --entry __startup
+LDFLAGS      += -Wl,-Map,$(PROJECT).map -specs=nosys.specs
+LDFLAGS      += -L $(GCC_PATH)/arm-none-eabi/lib/armv7-m
+LDFLAGS      += -T$(DIR_LINKER)/512KB_P$(load_type).ld
 
 ifeq ($(load_type),flash)
 
@@ -125,36 +141,50 @@ INCLUDES := -I$(GCC_PATH)/arm-none-eabi/include
 endif
 
 ###############################################################################
-
 # List of the common source files
-SRC_ASM += $(DIR_COMPILER)/$(compiler)/crt0.s
-SRC_C   := $(DIR_CPU)/arm_cm4.c $(DIR_MEM)/heap_2.c $(DIR_SRC)/list.c
-SRC_C   += $(DIR_CM4F)/port.c
-SRC_C   += $(DIR_CPU)/start.c $(DIR_SRC)/queue.c $(DIR_COMMON)/startup.c
-SRC_C   += $(DIR_CPU)/sysinit.c $(DIR_SRC)/timers.c $(DIR_SRC)/tasks.c
-SRC_C   += $(DIR_UART)/uart.c $(DIR_CPU)/vectors.c $(DIR_WDOG)/wdog.c
+###############################################################################
 
-# List of the specific source files
+# List of core files
+SRC_CORE_C := $(DIR_CM4F)/port.c $(DIR_SRC)/list.c $(DIR_SRC)/queue.c
+SRC_CORE_C += $(DIR_SRC)/tasks.c $(DIR_SRC)/timers.c
+
+# List of application files
+SRC_APP_ASM += $(DIR_COMPILER)/$(compiler)/crt0.s
+
+SRC_APP_C += $(DIR_CPU)/arm_cm4.c $(DIR_CPU)/start.c
+SRC_APP_C += $(DIR_CPU)/sysinit.c $(DIR_CPU)/vectors.c
+SRC_APP_C += $(DIR_COMMON)/startup.c $(DIR_MEM)/heap_2.c
+SRC_APP_C += $(DIR_WDOG)/wdog.c
+
+###############################################################################
+# List of the specific application files
+###############################################################################
 
 ifeq ($(mode),full)
 
-# SRC_C += ParTest.c
-SRC_C += $(DIR_MIN)/BlockQ.c $(DIR_MIN)/PollQ.c $(DIR_MIN)/semtest.c
-SRC_C += $(DIR_MIN)/blocktim.c $(DIR_MIN)/countsem.c $(DIR_MIN)/GenQTest.c
-SRC_C += $(DIR_MIN)/QPeek.c $(DIR_MIN)/recmutex.c $(DIR_MIN)/TimerDemo.c
-SRC_C += $(DIR_MIN)/death.c $(DIR_MIN)/dynamic.c
-SRC_C += main-full.c
+SRC_APP_C += ParTest.c
+SRC_APP_C += $(DIR_MIN)/BlockQ.c $(DIR_MIN)/PollQ.c $(DIR_MIN)/semtest.c
+SRC_APP_C += $(DIR_MIN)/blocktim.c $(DIR_MIN)/countsem.c $(DIR_MIN)/GenQTest.c
+SRC_APP_C += $(DIR_MIN)/QPeek.c $(DIR_MIN)/recmutex.c $(DIR_MIN)/TimerDemo.c
+SRC_APP_C += $(DIR_MIN)/death.c $(DIR_MIN)/dynamic.c
+SRC_APP_C += main-full.c
 
 else
 
-SRC_C += main_blinky.c
+SRC_APP_C += main_blinky.c
 
 endif
 
 # List of the objects files to be compiled/assembled
-OBJECTS_ASM := $(SRC_ASM:.s=.o)
-OBJECTS_C   := $(SRC_C:.c=.o)
-OBJECTS     := $(OBJECTS_ASM) $(OBJECTS_C)
+OBJECTS_CORE_ASM := $(SRC_CORE_ASM:.s=.o)
+OBJECTS_CORE_C   := $(SRC_CORE_C:.c=.o)
+OBJECTS_CORE     := $(OBJECTS_CORE_ASM) $(OBJECTS_CORE_C)
+
+OBJECTS_APP_ASM  := $(SRC_APP_ASM:.s=.o)
+OBJECTS_APP_C    := $(SRC_APP_C:.c=.o)
+OBJECTS_APP      := $(OBJECTS_APP_ASM) $(OBJECTS_APP_C)
+
+OBJECTS          := $(OBJECTS_CORE) $(OBJECTS_APP)
 
 # Project related includes
 INCLUDES += -I.
@@ -170,19 +200,36 @@ INCLUDES += -I$(DIR_COMPILER)/$(compiler)
 
 ###############################################################################
 
+# Functions
+
+define get_cflags
+$(if $(filter $1,$(SRC_CORE_C)),$(CORE_CFLAGS),$(APP_CFLAGS))
+endef
+
+define get_asflags
+$(if $(filter $1,$(SRC_CORE_ASM)),$(CORE_ASFLAGS),$(APP_ASFLAGS))
+endef
+
+###############################################################################
+
+.PHONY: clean core app
+
 all: $(EXE)
 
-$(EXE): $(OBJECTS)
+$(EXE): core app
 	$(LINK) $(OBJECTS) $(LDFLAGS) -o $(EXE)
 
+core: $(OBJECTS_CORE_ASM) $(OBJECTS_CORE_C)
+
+app: $(OBJECTS_APP_ASM) $(OBJECTS_APP_C)
+
 .c.o:
-	$(info $@)
-	$(CC) $(CFLAGS) $(INCLUDES) $< -o $(<:.c=.o)
+	$(info $file)
+	$(CC) $(CFLAGS) $(call get_cflags,$^) $(INCLUDES) $^ -o $@
 
 .s.o:
-	$(info $@)
-	$(ASM) $(ASFLAGS) $< -o $(<:.s=.o)
+	$(info $file)
+	$(ASM) $(ASFLAGS) $(call get_asflags,$^) $^ -o $@
 
-.PHONY: clean
 clean:
 	rm -f $(OBJECTS) $(EXE) $(PROJECT).map
