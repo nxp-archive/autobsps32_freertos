@@ -16,16 +16,8 @@
 
 /* Defines specific to the S32K board */
 
-
 /* Define for the CPU on the S32K board */
 #define CPU_S32K144
-
-/*
- * System Bus Clock Info
- */
-#define S32K_CLK             1
-#define REF_CLK             XTAL8   /* value isn't used, but we still need something defined */
-#define CORE_CLK_MHZ        PLL96   /* 96MHz is only freq tested for a clock input*/
 
 /*
  * Serial Port Info
