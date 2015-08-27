@@ -2,18 +2,6 @@
 PROJECT := RTOSDemo
 EXE     := $(PROJECT).elf
 
-# Common directories containing source/header files
-DIR_COMPILER := Freescale_Code/compilers
-DIR_PLATFORM := Freescale_Code/platform
-DIR_LINKER   := $(DIR_COMPILER)/$(compiler)/linker
-DIR_COMMON   := Freescale_Code/common
-DIR_CPU      := Freescale_Code/cpu
-DIR_UART     := Freescale_Code/drivers/uart
-DIR_WDOG     := Freescale_Code/drivers/wdog
-DIR_SRC      := ../../Source
-DIR_MEM      := $(DIR_SRC)/portable/MemMang
-DIR_MIN      := ../Common/Minimal
-
 # Default compiler
 compiler := iar
 
@@ -35,6 +23,18 @@ load_types := ram flash
 ifneq ($(filter $(load_type),$(load_types)),$(load_type))
 $(error Undefined load type: '$(load_type)', use one from: $(load_types))
 endif
+
+# Common directories containing source/header files
+DIR_COMPILER := Freescale_Code/compilers
+DIR_PLATFORM := Freescale_Code/platform
+DIR_LINKER   := $(DIR_COMPILER)/$(compiler)/linker
+DIR_COMMON   := Freescale_Code/common
+DIR_CPU      := Freescale_Code/cpu
+DIR_UART     := Freescale_Code/drivers/uart
+DIR_WDOG     := Freescale_Code/drivers/wdog
+DIR_SRC      := ../../Source
+DIR_MEM      := $(DIR_SRC)/portable/MemMang
+DIR_MIN      := ../Common/Minimal
 
 ##############################################################################
 # Please replace -DAPP_CFLAG -DCORE_CFLAG -DAPP_ASFLAG -DCORE_ASFLAG
