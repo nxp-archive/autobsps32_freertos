@@ -2,11 +2,11 @@
 /*-Editor annotation file-*/
 /* IcfEditorFile="$TOOLKIT_DIR$\config\ide\IcfEditor\cortex_v1_0.xml" */
 /*-Specials-*/
-define symbol __ICFEDIT_intvec_start__ = 0x00000000;
+define symbol __ICFEDIT_intvec_start__ = 0x00040000;
 /*-Memory Regions-*/
-define symbol __ICFEDIT_region_ROM_start__ = 0x00000000;
+define symbol __ICFEDIT_region_ROM_start__ = 0x00040000;
 define symbol __ICFEDIT_region_ROM_end__   = 0x00080000;
-define symbol __ICFEDIT_region_RAM_start__ = 0x1FFF0410;
+define symbol __ICFEDIT_region_RAM_start__ = 0x1FFF8410;
 define symbol __ICFEDIT_region_RAM_end__   = 0x20000000;
 /*-Sizes-*/
 define symbol __ICFEDIT_size_cstack__ = 0x1000;
@@ -14,14 +14,14 @@ define symbol __ICFEDIT_size_heap__   = 0x200;
 /**** End of ICF editor section. ###ICF###*/
 
 define symbol __region_RAM2_start__ = 0x20000000;
-define symbol __region_RAM2_end__ = 0x20010000;
+define symbol __region_RAM2_end__ = 0x20007FFF;
 
-define exported symbol __VECTOR_TABLE = 0x00000000;
-define exported symbol __VECTOR_RAM = 0x1fff0000;
+define exported symbol __VECTOR_TABLE = 0x00040000;
+define exported symbol __VECTOR_RAM = 0x1FFF8000;
 
-define exported symbol __BOOT_STACK_ADDRESS = __region_RAM2_end__ - 8;	//0x2000FFF8;
+define exported symbol __BOOT_STACK_ADDRESS = __region_RAM2_end__ - 8;
 
-define symbol __code_start__ = 0x00000410;
+define symbol __code_start__ = 0x00040410;
 
 define memory mem with size = 4G;
 define region ROM_region   = mem:[from __ICFEDIT_region_ROM_start__   to __ICFEDIT_region_ROM_end__];
