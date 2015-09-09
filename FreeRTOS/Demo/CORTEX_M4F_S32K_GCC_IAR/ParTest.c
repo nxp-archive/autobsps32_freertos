@@ -42,25 +42,27 @@
 /* Only the LEDs on one of the two seven segment displays are used. */
 #define partstMAX_LEDS		4
 
-/* The bits used to control the LEDs on the TWR-K60N512. */
-const unsigned long ulLEDs[ partstMAX_LEDS ] = { ( 1UL << 10UL ), ( 1UL << 29UL ), ( 1UL << 28UL ), ( 1UL << 11UL ) };
+/* The bits used to control the LEDs on the S32K144. */
+const unsigned long ulLEDs[ partstMAX_LEDS ] = { ( 1UL << 2UL ), ( 1UL << 3UL ), ( 1UL << 15UL ), ( 1UL << 14UL ) };
 
 /*-----------------------------------------------------------*/
 
 void vParTestInitialise( void )
 {
-	/* Set PTA10, PTA11, PTA28, and PTA29 (connected to LED's) for GPIO
+	/* Set PTB2, PTB3, PTC14, and PTC15 (connected to LED's) for GPIO
 	functionality. */
-	PORTA_PCR10 = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTA_PCR11 = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTA_PCR28 = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTA_PCR29 = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTB_PCR2 = ( 0 | PORT_PCR2_MUX( 1 ) );
+	PORTB_PCR3 = ( 0 | PORT_PCR3_MUX( 1 ) );
+	PORTC_PCR14 = ( 0 | PORT_PCR14_MUX( 1 ) );
+	PORTC_PCR15 = ( 0 | PORT_PCR15_MUX( 1 ) );
 
-	/* Change PTA10, PTA11, PTA28, PTA29 to outputs. */
-	GPIOA_PDDR=GPIO_PDDR_PDD( ulLEDs[ 0 ] | ulLEDs[ 1 ] | ulLEDs[ 2 ] | ulLEDs[ 3 ] );
+	/* Change PTB2, PTB3, PTC14, and PTC15 to outputs. */
+	GPIOB_PDDR=GPIO_PDDR_PDD( ulLEDs[ 0 ] | ulLEDs[ 1 ] );
+	GPIOC_PDDR=GPIO_PDDR_PDD( ulLEDs[ 2 ] | ulLEDs[ 3 ] );
 
 	/* Start with LEDs off. */
-	GPIOA_PTOR = ~0U;
+	GPIOB_PTOR = ~0U;
+	GPIOC_PTOR = ~0U;
 }
 /*-----------------------------------------------------------*/
 
@@ -70,11 +72,17 @@ void vParTestSetLED( unsigned long ulLED, signed portBASE_TYPE xValue )
 	{
 		if( xValue == pdTRUE )
 		{
-			GPIOA_PCOR = ulLEDs[ ulLED ];
+			if ( ulLED == 0 || ulLED == 1 )
+				GPIOB_PCOR = ulLEDs[ ulLED ];
+			else
+				GPIOC_PCOR = ulLEDs[ ulLED ];
 		}
 		else
 		{
-			GPIOA_PSOR = ulLEDs[ ulLED ];
+			if ( ulLED == 0 || ulLED == 1 )
+				GPIOB_PSOR = ulLEDs[ ulLED ];
+			else
+				GPIOC_PSOR = ulLEDs[ ulLED ];
 		}
 	}
 }
@@ -84,7 +92,10 @@ void vParTestToggleLED( unsigned long ulLED )
 {
 	if( ulLED < partstMAX_LEDS )
 	{
-		GPIOA_PTOR = ulLEDs[ ulLED ];
+		if ( ulLED == 0 || ulLED == 1 )
+			GPIOB_PTOR = ulLEDs[ ulLED ];
+		else
+			GPIOC_PTOR = ulLEDs[ ulLED ];
 	}
 }
 /*-----------------------------------------------------------*/
@@ -95,7 +106,10 @@ long lReturn = pdFALSE;
 
 	if( ulLED < partstMAX_LEDS )
 	{
-		lReturn = GPIOA_PDOR & ulLEDs[ ulLED ];
+		if ( ulLED == 0 || ulLED == 1 )
+			lReturn = GPIOB_PDOR & ulLEDs[ ulLED ];
+		else
+			lReturn = GPIOC_PDOR & ulLEDs[ ulLED ];
 
 		if( lReturn == 0 )
 		{

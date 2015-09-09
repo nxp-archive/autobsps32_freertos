@@ -65,7 +65,7 @@
  * green LED.
  *
  * The LED/Button Software Timer and the Button Interrupt:
- * The user button SW2 is configured to generate an interrupt each time it is
+ * The user button SW7 is configured to generate an interrupt each time it is
  * pressed.  The interrupt service routine switches the orange/yellow LED on,
  * and resets the LED software timer.  The LED timer has a 5000 millisecond (5
  * second) period, and uses a callback function that is defined to just turn the
@@ -150,7 +150,7 @@ reported in one of the standard demo tasks.  ms are converted to the equivalent
 in ticks using the portTICK_PERIOD_MS constant. */
 #define mainERROR_CHECK_TIMER_PERIOD_MS 	( 200UL / portTICK_PERIOD_MS )
 
-/* The LED that is turned on by pressing SW2 remains on until the button has not
+/* The LED that is turned on by pressing SW7 remains on until the button has not
 been pushed for a full 5000ms. */
 #define mainBUTTON_LED_TIMER_PERIOD_MS		( 5000UL / portTICK_PERIOD_MS )
 
@@ -162,9 +162,9 @@ callback functions. */
 /* A block time of zero simply means "don't block". */
 #define mainDONT_BLOCK						( 0UL )
 
-/* The vector used by the GPIO port E.  Button SW2 is configured to generate
+/* The vector used by the GPIO port C.  Button SW7 is configured to generate
 an interrupt on this port. */
-#define mainGPIO_E_VECTOR					( 91 )
+#define mainGPIO_C_VECTOR					( 61 )
 
 /*-----------------------------------------------------------*/
 
@@ -263,7 +263,6 @@ void main( void )
 
 static void prvCheckTimerCallback( TimerHandle_t xTimer )
 {
-#if 0 /* TODO: update for S23K */
 static long lChangedTimerPeriodAlready = pdFALSE;
 
 	/* Check the standard demo tasks are running without error. Latch the
@@ -344,23 +343,19 @@ static long lChangedTimerPeriodAlready = pdFALSE;
 			xTimerChangePeriod( xCheckTimer, ( mainERROR_CHECK_TIMER_PERIOD_MS ), mainDONT_BLOCK );
 		}
 	}
-#endif
 }
 /*-----------------------------------------------------------*/
 
 static void prvButtonLEDTimerCallback( TimerHandle_t xTimer )
 {
-#if 0 /* TODO: update for S23K */
 	/* The timer has expired - so no button pushes have occurred in the last
 	five seconds - turn the LED off. */
 	vParTestSetLED( mainTIMER_CONTROLLED_LED, pdFALSE );
-#endif
 }
 /*-----------------------------------------------------------*/
 
 static void prvLEDTimerCallback( TimerHandle_t xTimer )
 {
-#if 0 /* TODO: update for S23K */
 unsigned long ulLED;
 
 	/* This callback is shared by two timers, so the parameter is used to
@@ -368,14 +363,12 @@ unsigned long ulLED;
 	timer. */
 	ulLED = ( unsigned long ) pvTimerGetTimerID( xTimer );
 	vParTestToggleLED( ulLED );
-#endif
 }
 /*-----------------------------------------------------------*/
 
 /* The ISR executed when the user button is pushed. */
-void vPort_E_ISRHandler( void )
+void vPort_C_ISRHandler( void )
 {
-#if 0 /* TODO: update for S23K */
 	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
 	/* The button was pushed, so ensure the LED is on before resetting the
@@ -389,7 +382,7 @@ void vPort_E_ISRHandler( void )
 	xTimerResetFromISR( xLEDButtonTimer, &xHigherPriorityTaskWoken );
 
 	/* Clear the interrupt before leaving.  */
-	PORTE_ISFR = 0xFFFFFFFFUL;
+	PORTC_ISFR = 0xFFFFFFFFUL;
 
 	/* If calling xTimerResetFromISR() caused a task (in this case the timer
 	service/daemon task) to unblock, and the unblocked task has a priority
@@ -397,25 +390,22 @@ void vPort_E_ISRHandler( void )
 	xHigherPriorityTaskWoken will now be set to pdTRUE, and calling
 	portEND_SWITCHING_ISR() will ensure the unblocked task runs next. */
 	portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
-#endif
 }
 /*-----------------------------------------------------------*/
 
 static void prvSetupHardware( void )
 {
-#if 0 /* TODO: update for S23K */
-	/* Enable the interrupt on SW1. */
+	/* Enable the interrupt on SW7. */
 	taskDISABLE_INTERRUPTS();
-	PORTE_PCR26 = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
-	enable_irq( mainGPIO_E_VECTOR );
+	PORTC_PCR10 = PORT_PCR10_MUX( 1 ) | PORT_PCR10_IRQC( 0xA ) | PORT_PCR10_PE_MASK | PORT_PCR10_PS_MASK;
+	enable_irq( mainGPIO_C_VECTOR );
 
 	/* The interrupt calls an interrupt safe API function - so its priority must
 	be equal to or lower than configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY. */
-	set_irq_priority( mainGPIO_E_VECTOR, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
+	set_irq_priority( mainGPIO_C_VECTOR, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
 
 	/* Configure the LED outputs. */
 	vParTestInitialise();
-#endif
 }
 /*-----------------------------------------------------------*/
 
