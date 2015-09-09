@@ -6,11 +6,12 @@
 
 ;========================================================================
 LOCAL &load_to
+LOCAL &elf_file
 LOCAL &load_params
 LOCAL &core_no
 LOCAL &rchw
 
-ENTRY &load_to &load_params &core_no
+ENTRY &load_to &elf_file &load_params &core_no
 
 &optimizeFLSMODE=0
 &optimizeSECTORS=0
@@ -18,15 +19,14 @@ ENTRY &load_to &load_params &core_no
 &optimizePLL=0
 
 ;=========================================================================
-; Variables settings
+; Variables settings  
 ;=========================================================================
 
 ;=========================================================================
-; System settings
+; System settings  
 ;=========================================================================
-;cpu settings - cortexm4, rayleigh
+;cpu settings - cortexm4, S32K144
 system.reset
-SYSTEM.CONFIG.DEBUGPORTTYPE SWD
 SYStem.Option TRST off
 SYStem.Option ResBreak off
 SYStem.Option WaitReset ON
@@ -35,14 +35,12 @@ SYStem.CPU CortexM4F
 SYStem.JtagClock 100KHz
 sys.up
 
-SYStem.OPTION DUALPORT ON
-SYStem.Option DisMode ACCESS
 
 
-;disable wdg
-;data.set 0x40003010 %long 0xc520
-;data.set 0x40003010 %long 0xd928
-;data.set 0x40003000 %long 0xFf00010A
+; Disable Bootrom
+GOSUB DisableBootrom
+; Disable watchdog
+GOSUB DisableWatchdog
 
 
 ;=========================================================================
@@ -63,18 +61,126 @@ else
     Data.Set A:0X1FFF8000--0X20007FFF  %Quad 0
 )
 
+IF "&load_to"=="flash"
+(
+;=========================================================================
+; Flash declaration 
+;=========================================================================
+print "Starting FLASH sector creation:"
+    FLASH.RESet
 
-;TrOnchip.Set CORERESET OFF
-; initialize internam SRAM
-Data.LOAD.auto *
+  FLASH.Create 1. 0x00000000--0x0000FFF 0x1000 NOP Quad
+  FLASH.Create 2. 0x00001000--0x0007FFFF 0x1000 TARGET Quad
+   
+  ;FLASH.Create 3. 0x10000000--0x1000FFFF 0x800 TARGET Quad
+  
+  FLASH.TARGET 0x1FFFF000 0x20000000 0x1000 ~~/demo/arm/flash/quad/s32k.bin
+  
+)
+;========================================================================
+; Flash programming example
+;
+; Flash programming speed is about three times faster when memory class E:
+; is used for data buffer (DUALPORT memory access). For DUALPORT access it
+; is required to setup MemAccess NEXUS for both, NEXUS and JTAG debugger. 
+
+IF "&load_to"=="flash"
+(
+   if &optimizeFLSMODE==1
+   (
+      FLASH.Reprogram ALL
+      Data.Load.Elf &elf_file /GLOBTYPES
+      FLASH.Reprogram OFF
+
+   )
+   ELSE
+   (
+      FLASH.Reprogram ALL /ERASE
+      Data.Load.Elf &elf_file /GLOBTYPES
+      FLASH.Reprogram OFF
+
+   )
+)
+ELSE IF "&load_to"=="ERASE_ONLY"
+(
+   flash.unlock all
+   flash.auto off
+   flash.ERASE ALL	
+   ENDDO
+)
+TrOnchip.Set CORERESET OFF
+
+
+
+system.reset
+SYStem.Option TRST off
+SYStem.Option ResBreak off
+SYStem.Option WaitReset ON
+SYStem.CPU CortexM4F
+
+SYStem.JtagClock 100KHz
+sys.up
+
+; Disable watchdog
+GOSUB DisableWatchdog
+
+;load program (if FLASH selected than load only debug symbols)
+IF "&load_to"=="flash"
+(
+   Data.Load.Elf &elf_file /GLOBTYPES /NOCODE
+)
+ELSE
+(
+   ; initialize internam SRAM
+   Data.Load.Elf &elf_file /GLOBTYPES
+)
+
 
 WinCLEAR
-;WinPOS 84.125 0.0 63. 41. 0. 0. W001
-;Per , /SPOTLIGHT
+WinPOS 84.125 0.0 63. 41. 0. 0. W001
+Per , /SPOTLIGHT 
 
-;WinPOS 84.25 45.0 63. 12. 0. 0. W000
-;Register /SPOTLIGHT
+WinPOS 84.25 45.0 63. 12. 0. 0. W000
+Register /SPOTLIGHT
+
+; simulate reset event
+Register.Set PC  __startup
+; use this for GHS and GCC
+Register.Set R13 __BOOT_STACK_ADDRESS
 
 ENDDO
+
+DisableBootrom:
+  Data.Set SD:0x4007F010 %LE %Long 0x6
+  Data.Set SD:0x4007F014 %LE %Long 0x0
+  RETURN
+  
+DisableWatchdog:
+  LOCAL &tmp1 &tmp2
+  &tmp1=Data.Long(ST:0x20000000)
+  &tmp2=Data.Long(ST:0x20000004)
+
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 128 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
+  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
+  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set SP 0x20001000
+  Register.Set R0 0x4005200E
+  Register.Set R1 0xC520
+  Register.Set R2 0xD928
+  Register.Set R3 0x40052000
+  Register.Set R4 0x0
+  Go.direct
+  WAIT !RUN()
+
+  Data.Set ST:0x20000000 %Long &tmp1
+  Data.Set ST:0x20000004 %Long &tmp2
+
+  RETURN
+
+
 
 
