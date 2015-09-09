@@ -1,6 +1,7 @@
 # Project/output file name
 PROJECT := RTOSDemo
 EXE     := $(PROJECT).elf
+MAP     := $(PROJECT).map
 
 # Default compiler
 compiler := iar
@@ -36,7 +37,22 @@ DIR_SRC      := ../../Source
 DIR_MEM      := $(DIR_SRC)/portable/MemMang
 DIR_MIN      := ../Common/Minimal
 
-##############################################################################
+# Please edit path to Lauterbach Trace32 software if necessary
+EXPECT_DBG   := T32SYS
+DBGDIR       := $(subst \,/,$($(EXPECT_DBG)))
+
+# T32 binary path related variables
+T32_HOSTOS   := windows
+T32EXE       := t32marm
+
+# t32m* relative path in the $(LAUTERBACH_PATH) tree
+DBGEXE_RELPATH := bin/$(T32_HOSTOS)/$(T32EXE)
+
+PLATFORM       := s32k144
+BAT            := $(PLATFORM).bat
+CMM            := $(PLATFORM).cmm
+
+###############################################################################
 # Please replace -DAPP_CFLAG -DCORE_CFLAG -DAPP_ASFLAG -DCORE_ASFLAG
 # with the flags needed by your project
 ###############################################################################
@@ -72,7 +88,7 @@ APP_CFLAGS   := -DAPP_CFLAG
 CORE_CFLAGS  := -DCORE_CFLAG
 
 LDFLAGS      := --no_wrap_diagnostics --skip_dynamic_initialization
-LDFLAGS      += -L $(IAR_PATH)/arm/lib --map $(PROJECT).map
+LDFLAGS      += -L $(IAR_PATH)/arm/lib --map $(MAP)
 LDFLAGS      += --config $(DIR_LINKER)/512KB_P$(load_type).icf
 
 ifeq ($(load_type),ram)
@@ -125,7 +141,7 @@ APP_CFLAGS   := -DAPP_CFLAG
 CORE_CFLAGS  := -DCORE_CFLAG
 
 LDFLAGS      := -gdwarf-2 -mcpu=cortex-m4 -g3 -mthumb --entry __startup
-LDFLAGS      += -Wl,-Map,$(PROJECT).map -specs=nosys.specs
+LDFLAGS      += -Wl,-Map,$(MAP) -specs=nosys.specs
 LDFLAGS      += -L $(GCC_PATH)/arm-none-eabi/lib/armv7-m
 LDFLAGS      += -T$(DIR_LINKER)/512KB_P$(load_type).ld
 
@@ -161,6 +177,10 @@ SRC_APP_C += $(DIR_WDOG)/wdog.c
 ###############################################################################
 
 ifeq ($(mode),full)
+
+ifeq ($(load_type),ram)
+$(error The full demo can't be run from RAM)
+endif
 
 SRC_APP_C += ParTest.c
 SRC_APP_C += $(DIR_MIN)/BlockQ.c $(DIR_MIN)/PollQ.c $(DIR_MIN)/semtest.c
@@ -212,9 +232,9 @@ endef
 
 ###############################################################################
 
-.PHONY: clean core app
+.PHONY: clean core app $(BAT)
 
-all: $(EXE)
+all: $(EXE) $(BAT)
 
 $(EXE): core app
 	$(LINK) $(OBJECTS) $(LDFLAGS) -o $(EXE)
@@ -231,5 +251,16 @@ app: $(OBJECTS_APP_ASM) $(OBJECTS_APP_C)
 	$(info $file)
 	$(ASM) $(ASFLAGS) $(call get_asflags,$^) $^ -o $@
 
+$(BAT):
+	@ECHO Make BAT file $@
+	@ECHO 'if not defined $(EXPECT_DBG) goto defaultDBG'                                                                              > $@
+	@ECHO 'set DBG_PATH=%$(EXPECT_DBG)%'                                                                                             >> $@
+	@ECHO 'goto startDBG'                                                                                                            >> $@
+	@ECHO ':defaultDBG'                                                                                                              >> $@
+	@ECHO 'set DBG_PATH=$(DBGDIR)'                                                                                                   >> $@
+	@ECHO ':startDBG'                                                                                                                >> $@
+	@ECHO 'start %DBG_PATH%/$(DBGEXE_RELPATH) -c %DBG_PATH%/config.t32,$(CMM) $(load_type) $(shell cygpath -w -a $(abspath $(EXE)))' >> $@
+	@CHMOD +rwx $@
+
 clean:
-	rm -f $(OBJECTS) $(EXE) $(PROJECT).map
+	rm -f $(OBJECTS) $(EXE) $(MAP) $(BAT)
