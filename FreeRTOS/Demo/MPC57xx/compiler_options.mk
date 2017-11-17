@@ -1,6 +1,7 @@
 #==================================================================================================
 #
 #  (c) Copyright 2015 Freescale Semiconductor Inc.
+#  Copyright 2017 NXP
 #  
 #  This program is free software; you can redistribute it and/or modify it under
 #  the terms of the GNU General Public License (version 2) as published by the
@@ -30,18 +31,12 @@ CFLAGS   :=  --sysroot=$(shell $(CYGPATH) -m -i $(COMPILER_LIBS)) \
 			-I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC_Z4 \
 			-I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES \
 			-I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX \
+			-I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM)\
 			-mcpu=e200z4 -mfpu=sp_full -mvle -mfloat-gprs=yes -mhard-float -static \
 			-O3 -g3 -fno-strict-aliasing -Wall -Wextra -Werror -Wdouble-promotion -Wfloat-equal \
 			-Wconversion -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections
 
 CFLAGS += -DTEST_DYNAMIC=1 -DconfigSUPPORT_STATIC_ALLOCATION=0 -DconfigSUPPORT_DYNAMIC_ALLOCATION=1
-
-ifneq (,$(findstring mpc5746c,$(PLATFORM)))
-    CFLAGS += -DMPC5746C=1
-else
-    CFLAGS += -DMPC5748G=1
-endif
-
 
 LDFLAGS :=  --sysroot=$(shell $(CYGPATH) -m -i $(COMPILER_LIBS)) -mcpu=e200z4 -mfpu=sp_full -Xlinker -Map=$(shell $(CYGPATH) -m -i $(OUT_ROOT)/$(TEST_NAME).map) \
 			-nostartfiles -T$(shell $(CYGPATH) -m -i $(CRT_DIR))/LINKERSCRIPTS/flash_$(PLATFORM).ld -static -Xlinker --gc-sections -Xlinker --print-gc-sections

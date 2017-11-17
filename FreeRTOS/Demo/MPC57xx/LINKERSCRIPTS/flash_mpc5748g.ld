@@ -1,6 +1,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
+*   Copyright 2017 NXP
 *   
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
@@ -58,10 +59,13 @@ SECTIONS
     {
         /* PPC EABI requires that all bytes witin .sbss2 and sdata2 be located within a signed 16-bit offset of _SDA2_BASE_ */
         _SDA2_BASE_ = .;
+        __SDATA2_START__ = .;
 
         __sbss2_start = .;
         *(SORT_BY_ALIGNMENT(.sbss2) SORT_BY_ALIGNMENT(.sbss2.*))
         __sbss2_end = .;
+        
+        __SBSS2_END__ = .;
     } > APP_INTERNAL_FLASH
 
     /* small const variables */
@@ -164,6 +168,7 @@ __data_flash_start__ = .;
         _SDA_BASE_ = .;
 
         __sdata_start__ = .;
+		__SDATA_START__ = .;
         *(SORT_BY_ALIGNMENT(.sdata) SORT_BY_ALIGNMENT(.sdata.*) SORT_BY_ALIGNMENT(.gnu.linkonce.s.*))
         __sdata_end__ = .;
     } > INTERNAL_RAM AT>APP_INTERNAL_FLASH
@@ -174,6 +179,7 @@ __data_flash_start__ = .;
         __sbss_start__ = .;
         *(SORT_BY_ALIGNMENT(.sbss) SORT_BY_ALIGNMENT(.sbss.*) SORT_BY_ALIGNMENT(.gnu.linkonce.sb.*) SORT_BY_ALIGNMENT(.scommon))
         __sbss_end__ = .;
+		__SBSS_END__ = .;
 
         _SDA_END_ = .;
 

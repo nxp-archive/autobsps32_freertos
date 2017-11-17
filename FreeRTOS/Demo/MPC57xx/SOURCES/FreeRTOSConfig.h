@@ -1,6 +1,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
+*   Copyright 2017 NXP
 *   
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
@@ -26,6 +27,7 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
+#include "cpudefs.h"
 /*-----------------------------------------------------------
  * Application specific definitions.
  *
@@ -71,10 +73,6 @@
 #define configTIMER_QUEUE_LENGTH				5
 #define configTIMER_TASK_STACK_DEPTH			( configMINIMAL_STACK_SIZE * 2 )
 
-
-
-/* Calypso specific: pit channel to use 0-15 */
-#define configUSE_PIT_CHANNEL                     15
 
 
 /* Co-routine definitions. */

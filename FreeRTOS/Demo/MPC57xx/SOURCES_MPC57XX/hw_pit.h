@@ -3,6 +3,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
+*   Copyright 2017 NXP
 *   
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
@@ -56,8 +57,8 @@ extern "C" {
 #define HWPIT_TFLG_TIF      (unsigned int)0x00000001U
 
 
-#if ((configUSE_PIT_CHANNEL<0) || (configUSE_PIT_CHANNEL>15))
-#error "configUSE_PIT_CHANNEL parameter out of range: use [0..15]"
+#if ((configUSE_PIT_CHANNEL<0) || (configUSE_PIT_CHANNEL>MAX_PIT_CHANNEL))
+#error "configUSE_PIT_CHANNEL parameter out of range"
 #endif
 
 #define HWPIT_GET_INTID(chid) (unsigned int)(chid + 226U)

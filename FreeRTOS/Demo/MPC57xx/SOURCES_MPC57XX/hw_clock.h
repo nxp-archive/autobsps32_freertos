@@ -3,6 +3,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
+*   Copyright 2017 NXP
 *   
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
@@ -34,7 +35,7 @@ extern "C"
 
 #include "hw_typedefs.h"
 #include "hw_base.h"
-
+#include "cpudefs.h"
 
 /******************************************************************** Clocks ********************************************************************/
 
@@ -51,8 +52,8 @@ extern "C"
 
 #define HWPeriphEnableAll()                                                    \
 {                                                                              \
-    HWRGM_FES = 0x4080;              /* clear fccr_hard and fccu_safe flags */ \
-    CGM_SC_DC0_3 = 0x80000000;       /* Divider 2 Enable,DIV0 = 1 */           \
+    HWRGM_FES = HWRGM_FES_DEFAULT; \
+    CGM_SC_DC0_3 = CGM_SC_DC0_3_DEFAULT; \
     ME_RUN_PC = 0x000000FE;          /* Set configuration,peripheral ON in every mode */ \
     ME_MCTL = 0x30005AF0;            /* Re-enter in DRUN mode to update with control key */ \
     ME_MCTL = 0x3000A50F;            /* --//-- with inverted control key */ \

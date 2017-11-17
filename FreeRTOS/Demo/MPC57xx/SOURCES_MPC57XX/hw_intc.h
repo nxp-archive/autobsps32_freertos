@@ -3,6 +3,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
+*   Copyright 2017 NXP
 *   
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
@@ -34,15 +35,10 @@ extern "C"
 
 #include "hw_typedefs.h"
 #include "hw_base.h"
-#if MPC5746C
-    #define HWINTC_INTERRUPTS    (766U)
-#elif MPC5748G
-	#define HWINTC_INTERRUPTS    (754U)
-#else
-	#error "No defined platform!!!"
-#endif
+#include "cpudefs.h"
+
     #define HWINTC_OFFSET        (0x0U) /* can be used to access the INTC registers for the other cores, for Z4 it's 0 */
-    
+
     #define HWINTC_MCR           HWREG32(HWINTC_BASE_ADDR)                            /* Module/Block Configuration Register */
     #define HWINTC_CPR           HWREG32(HWINTC_BASE_ADDR + 0x10U + HWINTC_OFFSET)    /* Current Priority Register */
     #define HWINTC_IACKR         HWREG32(HWINTC_BASE_ADDR + 0x20U + HWINTC_OFFSET)    /* Interrupt Acknowledge Register */

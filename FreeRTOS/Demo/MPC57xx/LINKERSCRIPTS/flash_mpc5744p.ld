@@ -1,37 +1,15 @@
-/*==================================================================================================
-*
-*   (c) Copyright 2015 Freescale Semiconductor Inc.
-*   Copyright 2017 NXP
-*   
-*   This program is free software; you can redistribute it and/or modify it under
-*   the terms of the GNU General Public License (version 2) as published by the
-*   Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
-*
-*   ***************************************************************************
-*   >>!   NOTE: The modification to the GPL is included to allow you to     !<<
-*   >>!   distribute a combined work that includes FreeRTOS without being   !<<
-*   >>!   obliged to provide the source code for proprietary components     !<<
-*   >>!   outside of the FreeRTOS kernel.                                   !<<
-*   ***************************************************************************
-*
-*   This program is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*   
-*   You should have received a copy of the GNU General Public License
-*   along with this program; if not, write to the Free Software
-*   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-*
-==================================================================================================*/
+/*
+* Copyright 2017 NXP
+*/
+
 _STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x400;
-SRAM_SIZE = DEFINED(SRAM_SIZE) ? SRAM_SIZE : 0x80000;
+SRAM_SIZE = DEFINED(SRAM_SIZE) ? SRAM_SIZE : 0x60000;
 SRAM_BASE_ADDR = DEFINED(SRAM_BASE_ADDR) ? SRAM_BASE_ADDR : 0x40000000;
 /* Define Memories in the system */
 MEMORY
 {
-   APP_INTERNAL_FLASH(arx) : ORIGIN = 0x00FC0000, LENGTH = 0x00010000 /* 64K */
-   INTERNAL_RAM(rw)    : ORIGIN = 0x40000000, LENGTH = 0x00080000 /* 512K */
+   APP_INTERNAL_FLASH(arx) : ORIGIN = 0x00FA0000, LENGTH = 0x00060000 /* 384K */
+   INTERNAL_RAM(rw)    : ORIGIN = 0x40000000, LENGTH = 0x00060000 /* 384K */
 }
 
 SECTIONS
@@ -42,7 +20,7 @@ SECTIONS
         __user_flash_start__ = .;
         KEEP(*(.rchwdata .rchwdata.* .rchw .rchw.*))
     } > APP_INTERNAL_FLASH
-    
+
     .bootDescriptor (NOLOAD) :
     {
        KEEP(*(.bootDescriptor))

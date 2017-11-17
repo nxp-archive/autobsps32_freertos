@@ -1,6 +1,7 @@
 #==================================================================================================
 #
 #  (c) Copyright 2015 Freescale Semiconductor Inc.
+#  Copyright 2017 NXP
 #  
 #  This program is free software; you can redistribute it and/or modify it under
 #  the terms of the GNU General Public License (version 2) as published by the
@@ -23,13 +24,12 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 #================================================================================================*/
-CYGPATH := cygpath.exe
-MAKE	:= make.exe
-MKDIR	:= mkdir.exe
-RM		:= rm.exe
-ECHO	:= echo.exe
 
+# Include user-specific paths to various tools
 include user_paths.mk
+
+# Include path to bash utils
+include tools.mk
 
 CRT_DIR := $(shell pwd)
 
@@ -40,7 +40,11 @@ else
 endif
 OUT_ROOT:=$(OUT_DIR)/OUT
 
-
+# convert paths to unix
+COMPILER_ROOTDIR := $(shell $(CYGPATH) -u -i $(COMPILER_ROOTDIR))
+COMPILER_LIBS := $(shell $(CYGPATH) -u -i $(COMPILER_LIBS))
+OS_ROOT := $(shell $(CYGPATH) -u -i $(OS_ROOT))
+LAUTERBACH_PATH := $(shell $(CYGPATH) -u -i $(LAUTERBACH_PATH))
 
 AS		:= $(COMPILER_ROOTDIR)powerpc-eabivle-as.exe
 CC		:= $(COMPILER_ROOTDIR)powerpc-eabivle-gcc.exe
@@ -53,6 +57,9 @@ endif
 
 export COMPILER_ROOTDIR
 export COMPILER_LIBS
+export LAUTERBACH_PATH
+
+OS_ROOT := $(CRT_DIR)/../../
 export OS_ROOT
 
 export AS
@@ -71,6 +78,9 @@ OUT_DIR_CREATE:
 	$(MKDIR) -p $(OUT_ROOT)
 	$(MKDIR) $(OUT_ROOT)/obj
 
-GEN_001: OUT_DIR_CREATE
+GEN_001: OUT_DIR_CREATE START_BAT_FILE
 	$(MKDIR) -p $(OUT_ROOT)/obj/GEN_001
 	$(MAKE) -C SOURCES
+
+START_BAT_FILE:
+	$(FIND) . -name start.bat -exec $(SED) -i 's/T32_PATH=.*/T32_PATH=$(subst \,\\,$(shell $(CYGPATH) -w -i -a $(LAUTERBACH_PATH)))/' {} \;

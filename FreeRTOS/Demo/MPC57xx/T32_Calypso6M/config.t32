@@ -4,16 +4,16 @@ PORT=${1}
 ; Environment variables
 OS=
 ID=T32${1}
-TMP=c:\tools\T32\temp
-SYS=c:\tools\T32\
-HELP=c:\tools\T32\pdf
+TMP=${5}\temp
+SYS=${5}\
+HELP=${5}\pdf
 
 PBI=
 ${3}
 ${4}
-${5}
-${6}
 
+${6}
+${7}
 ; Printer settings 
 PRINTER=WINDOWS
 

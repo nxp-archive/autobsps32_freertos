@@ -1,6 +1,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
+*   Copyright 2017 NXP
 *   
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
@@ -237,3 +238,7 @@ __dcache_no_abort:
 #
 #****************************** Jump to Main ***********************************
     e_b         main
+
+.global __init
+__init:
+    se_blr

@@ -1,6 +1,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
+*   Copyright 2017 NXP
 *   
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
@@ -24,23 +25,12 @@
 *
 ==================================================================================================*/
 
+#include "cpudefs.h"
 
-#define CPU2_ENABLE   0x00000001  /* CPU2 is enabled              */
-#define CPU0_ENABLE   0x00000002  /* CPU0 is enabled              */
-#define MPC574xx_ID   0x005A0000  /* RCHW boot ID for MPC574xx devices    */
 #define RCHW_VAL (CPU0_ENABLE | MPC574xx_ID)
 
 extern void __start(void);
 
 #define RCHWDATA __attribute__((section(".rchwdata")))
 
-
-RCHWDATA const unsigned int RCHW6=0x00;
-RCHWDATA const unsigned int RCHW5=(const unsigned int)__start; /* entry point */
-RCHWDATA const unsigned int RCHW4=0x00;
-RCHWDATA const unsigned int RCHW3=0x00;
-RCHWDATA const unsigned int RCHW2=0x00;
-RCHWDATA const unsigned int RCHW1=RCHW_VAL;
-
-
-
+RCHWDATA_Init();

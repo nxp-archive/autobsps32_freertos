@@ -1,0 +1,76 @@
+;
+; Copyright 2017 NXP
+;
+
+
+
+;local &filename
+;entry &filename
+
+;=== elf-file for debugging ===
+&filename="../OUT/GEN_001"
+&optimizePLL=0
+
+;set titles
+ Title "Calypso3M - core_0 (z4)"
+
+;arrange debugger windows
+; framepos      5.    5. 150.  50.
+
+;set equal paths
+&pwd=os.pwd()
+
+
+;=========================================================================
+; System settings  
+;=========================================================================
+; CPU setup
+SYStem.RESet
+SYStem.BdmClock 4MHz
+SYStem.CPU MPC5744P
+SYStem.CONFIG.CORE 1. 1. ; select core 1
+SYStem.CONFIG.SLAVE OFF
+SYStem.Option.WATCHDOG OFF
+SYStem.OPTION DUALPORT ON
+SYStem.Option.SLOWRESET ON
+SYStem.DETECT CPU
+;DIAG 3117 1
+SYStem.Up
+
+
+
+;switch to HLL mode debugging
+MODE.HLL
+  
+  
+wait 500ms
+
+
+;initialize internal SRAM.
+Data.Set EA:0x40000000--0x4005FFFF %quad 0x0
+
+
+map.bonchip 0x0--0x4007ffff
+
+
+DO flash.cmm &filename
+
+
+;display source
+Data.List
+
+;clear all breakpoints
+Break.delete /ALL
+
+R.S IP _start
+
+register /sl
+
+v.w ui32_ms_cnt sBlockingConsumerCount  sBlockingProducerCount
+
+
+
+ENDDO
+
+
+
