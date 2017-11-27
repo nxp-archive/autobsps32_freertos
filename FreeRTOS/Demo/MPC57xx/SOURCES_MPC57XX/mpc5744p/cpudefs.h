@@ -54,6 +54,8 @@ extern "C"
         0x00                                            /* 1022..1023 */ \
     }
 
+    /* Definition is used in FreeRTOSConfig.h */
+    #define configCPU_CLOCK_HZ                         ((unsigned portLONG ) 8000000 )
     /* Panther specific: pit channel to use 0-3 */
     #define configUSE_PIT_CHANNEL                     3
     #define MAX_PIT_CHANNEL                           3

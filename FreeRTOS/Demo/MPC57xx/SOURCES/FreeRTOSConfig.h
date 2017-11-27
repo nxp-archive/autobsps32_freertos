@@ -44,13 +44,6 @@
 #define configUSE_IDLE_HOOK                         0
 #define configUSE_TICK_HOOK                         1
 
-/* 
- * tune this to the actual frequency used by the system timer periperal
- * after reset with no PLL programming
- * - Z4 is running at 16MHz
- * - PIT channels running on the F40 clock at 4MHz
- */
-#define configCPU_CLOCK_HZ                         ((unsigned portLONG ) 4000000 )
 #define configTICK_RATE_HZ                         ((TickType_t) 1000 )
 
 #define configMAX_PRIORITIES                       ( 7 )

@@ -52,6 +52,8 @@ extern "C"
         0xfc, 0xff, 0xff, 0xff, 0xff, 0xff, 0x03        /* 704..754 */\
     }
 
+    /* Definition is used in FreeRTOSConfig.h */
+    #define configCPU_CLOCK_HZ                         ((unsigned portLONG ) 4000000 )
     /* Calypso specific: pit channel to use 0-15 */
     #define configUSE_PIT_CHANNEL                     15
     #define MAX_PIT_CHANNEL                           15
