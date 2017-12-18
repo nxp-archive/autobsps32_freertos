@@ -1,0 +1,17 @@
+/*
+ * File:		wdog.h
+ * Purpose:		Provide common watchdog module routines
+ *
+ * Notes:
+ */
+
+#ifndef __WDOG_H__
+#define __WDOG_H__
+
+/********************************************************************/
+
+/* Function prototypes */
+void wdog_disable(void);
+
+/********************************************************************/
+#endif /* __WDOG_H__ */
