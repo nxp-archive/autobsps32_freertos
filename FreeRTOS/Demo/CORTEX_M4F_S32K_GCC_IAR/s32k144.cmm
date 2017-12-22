@@ -53,12 +53,12 @@ GOSUB DisableWatchdog
 if &optimizeRAM==1
 (
     print "Starting RAM initialization:"
-    ; Initialize internal SRAM (32KB)
-    Data.Set A:0X1FFF8000--0X20007FFF  %Quad 0
+    ; Initialize internal SRAM (59KB)
+    Data.Set A:0X1FFF8000--0X20006FFF  %Quad 0
 )
 else
 (
-    Data.Set A:0X1FFF8000--0X20007FFF  %Quad 0
+    Data.Set A:0X1FFF8000--0X20006FFF  %Quad 0
 )
 
 IF "&load_to"=="flash"
@@ -137,6 +137,7 @@ ELSE
 
 
 WinCLEAR
+data.list
 WinPOS 84.125 0.0 63. 41. 0. 0. W001
 Per , /SPOTLIGHT 
 
@@ -146,7 +147,7 @@ Register /SPOTLIGHT
 ; simulate reset event
 Register.Set PC  __startup
 ; use this for GHS and GCC
-Register.Set R13 __BOOT_STACK_ADDRESS
+Register.Set R13 __StackLimit
 
 ENDDO
 

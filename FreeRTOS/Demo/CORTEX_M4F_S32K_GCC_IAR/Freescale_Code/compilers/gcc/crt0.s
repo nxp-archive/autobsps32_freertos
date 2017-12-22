@@ -35,8 +35,8 @@ __startup:
 	mov     r10,#0
 	mov     r11,#0
 	mov     r12,#0
-	/* Setup only for FPGA */
-	ldr     r13, =__BOOT_STACK_ADDRESS
+
+	ldr     r13, =__StackLimit
 
 	/* Relocate vector table to RAM */
 	ldr  r0, =VTOR_REG

@@ -14,13 +14,13 @@ define symbol __ICFEDIT_size_heap__   = 0x200;
 /**** End of ICF editor section. ###ICF###*/
 
 define symbol __ICFEDIT_region_RAM2_start__ = 0x20000000;
-define symbol __ICFEDIT_region_RAM2_end__ = 0x20007FFF;
+define symbol __ICFEDIT_region_RAM2_end__ = 0x20006FFF;
 
 define exported symbol __VECTOR_TABLE = 0x00040000;
 define exported symbol __VECTOR_RAM = 0x1FFF8000;
 
 define exported symbol __BOOT_STACK_ADDRESS = __ICFEDIT_region_RAM2_end__;
-
+define exported symbol __StackLimit = __BOOT_STACK_ADDRESS-__ICFEDIT_size_cstack__+1;
 define symbol __code_start__ = 0x00040410;
 
 define memory mem with size = 4G;

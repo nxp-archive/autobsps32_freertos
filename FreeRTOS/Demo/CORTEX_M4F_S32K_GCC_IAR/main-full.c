@@ -437,6 +437,8 @@ void vPort_C_ISRHandler( void )
 
 static void prvSetupHardware( void )
 {
+    PCC->PCCn[PCC_PORTB_INDEX] = PCC_PCCn_CGC(1);
+    PCC->PCCn[PCC_PORTC_INDEX] = PCC_PCCn_CGC(1);
 	/* Enable the interrupt on SW7. */
 	taskDISABLE_INTERRUPTS();
 	PORTC->PCR[10] = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;

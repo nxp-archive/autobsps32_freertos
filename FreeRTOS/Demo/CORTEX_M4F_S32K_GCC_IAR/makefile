@@ -62,10 +62,9 @@ CMM            := $(PLATFORM).cmm
 
 ifeq ($(compiler),iar)
 
-# Environment variable IARARM_7.2_PATH must be set
+# Environment variable IAR_ARM_7_2_PATH must be set
 # Spaces are not allowed in the path
-# IAR_PATH := $(subst \,/,$(IARARM_7.2_PATH))
-IAR_PATH := "C:/Program Files (x86)/IAR Systems/Embedded Workbench 7.2"
+IAR_PATH := $(subst \,/,"$(IAR_ARM_7_2_PATH)")
 
 # IAR specific directory and .s file
 DIR_CM4F     := $(DIR_SRC)/portable/IAR/ARM_CM4F
@@ -113,9 +112,9 @@ endif
 
 ifeq ($(compiler),gcc)
 
-# Environment variable GCC_4.9_PATH must be set
+# Environment variable GCC_ARM_4_9_PATH must be set
 # Spaces are not allowed in the path
-GCC_PATH := $(subst \,/,$(GCC_4.9_PATH))
+GCC_PATH := $(subst \,/,"$(GCC_ARM_4_9_PATH)")
 
 # GCC specific directory
 DIR_CM4F := $(DIR_SRC)/portable/GCC/ARM_CM4F
