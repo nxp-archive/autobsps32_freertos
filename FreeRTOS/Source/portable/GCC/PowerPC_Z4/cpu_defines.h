@@ -1,7 +1,7 @@
 #ifndef CPU_DEFINES_H
 #define CPU_DEFINES_H
 
-#if MPC5746C == 1 | MPC5748G == 1 | MPC5744P == 1
+#if defined(MPC5746C) || defined(MPC5748G) || defined(MPC5744P) || defined(S32R274)
     #define INTC_CPR_ADDR                      0xFC040010
     #define INTC_IACKR_PRC_ADDR                0xFC040020
     #define INTC_EOIR_PRC_ADDR                 0xFC040030
