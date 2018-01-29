@@ -40,8 +40,8 @@ $(OUT_ROOT)/obj/$(TEST_NAME)/%.o: $(OS_ROOT)/Source/%.c
 $(OUT_ROOT)/obj/$(TEST_NAME)/%.o: $(OS_ROOT)/Source/portable/GCC/PowerPC_Z4/%.c
 	$(CC) $(CFLAGS) -c -o $(shell $(CYGPATH) -m -i $@) $(shell $(CYGPATH) -m -i $<)
 
-$(OUT_ROOT)/obj/$(TEST_NAME)/%.o: $(OS_ROOT)/Source/portable/GCC/PowerPC_Z4/MPC57xx/%.c
-	$(CC) $(CFLAGS) -c -o $(shell $(CYGPATH) -m -i $@) $(shell $(CYGPATH) -m -i $<)
-	
-$(OUT_ROOT)/obj/$(TEST_NAME)/%.o: $(OS_ROOT)/Source/portable/GCC/PowerPC_Z4/%.s
+$(OUT_ROOT)/obj/$(TEST_NAME)/%.o: $(OUT_ROOT)/obj/$(TEST_NAME)/%.s
 	$(AS) $(ASFLAGS) -o $(shell $(CYGPATH) -m -i $@) $(shell $(CYGPATH) -m -i $<)
+
+$(OUT_ROOT)/obj/$(TEST_NAME)/%.s: $(OS_ROOT)/Source/portable/GCC/PowerPC_Z4/%.s
+	$(CPP) $(CPPFLAGS) -o $(shell $(CYGPATH) -m -i $@) $(shell $(CYGPATH) -m -i $<)

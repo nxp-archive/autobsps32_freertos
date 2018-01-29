@@ -24,7 +24,9 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 #================================================================================================*/
-ASFLAGS  := -g --gdwarf-sections --gstabs+ -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/src_test_cases/$(TEST_NAME)
+ASFLAGS  := -g --gdwarf-sections --gstabs+ -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM)
+
+CPPFLAGS  := -g -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM)
 
 CFLAGS   :=  --sysroot=$(shell $(CYGPATH) -m -i $(COMPILER_LIBS)) \
             -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/include \

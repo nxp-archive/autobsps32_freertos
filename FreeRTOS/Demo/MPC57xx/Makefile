@@ -49,6 +49,8 @@ LAUTERBACH_PATH := $(shell $(CYGPATH) -u -i $(LAUTERBACH_PATH))
 AS		:= $(COMPILER_ROOTDIR)powerpc-eabivle-as.exe
 CC		:= $(COMPILER_ROOTDIR)powerpc-eabivle-gcc.exe
 LD 		:= $(COMPILER_ROOTDIR)powerpc-eabivle-gcc.exe
+CPP		:= $(COMPILER_ROOTDIR)powerpc-eabivle-cpp.exe
+
 
 
 ifndef PLATFORM
@@ -65,6 +67,7 @@ export OS_ROOT
 export AS
 export CC
 export LD
+export CPP
 export PLATFORM
 export OUT_ROOT
 export CRT_DIR
