@@ -1,0 +1,33 @@
+
+define symbol __vectortable_start__ = 0x1E000000;
+
+/*-Memory Regions-*/
+define symbol __region_RAM_start__ = 0x1E000000;
+define symbol __region_RAM_end__   = 0x1E007FFF;
+
+define symbol __region_RAM2_start__ = 0x3E000000;
+define symbol __region_RAM2_end__   = 0x3E007FFF;
+
+/*-Sizes-*/
+define symbol __size_cstack__ = 0x1000;
+/*define symbol __size_heap__   = 0x400;*/
+
+
+define exported symbol __VECTOR_TABLE = 0x3E800000;
+
+define exported symbol __BOOT_STACK_ADDRESS = __region_RAM2_end__ - 8;
+
+define memory mem with size = 4G;
+define region RAM_region   = mem:[from __region_RAM_start__ to  __region_RAM_end__];
+define region RAM2_region  = mem:[from __region_RAM2_start__ to __region_RAM2_end__];
+
+define block CSTACK    with alignment = 8, size = __size_cstack__   { };
+/*define block HEAP      with alignment = 8, size = __size_heap__     { };*/
+
+initialize by copy { readwrite };
+do not initialize  { section .noinit };
+
+place at address mem:__vectortable_start__ { readonly section .vectortable };
+
+place in RAM_region    { readonly };
+place in RAM2_region   { readwrite, block CSTACK /*, block HEAP */ };
