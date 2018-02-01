@@ -31,9 +31,7 @@
 extern "C" {
 #endif
 
-#include "hw_intc.h"
-
-
+#include "cpu_defines.h"
 /*-----------------------------------------------------------
  * Port specific definitions.  
  *
@@ -87,6 +85,7 @@ enum portSYSCALL_e
 #define portBYTE_ALIGNMENT          32
 #define portNOP()                   __asm__ volatile ( "se_nop" )
 
+#define portINTC_CPR  (*(volatile unsigned int *)(INTC_CPR_ADDR))
 /*-----------------------------------------------------------*/
 
 #define COMPILER_BARRIER()          __asm__ volatile ( "" : : : "memory" )
@@ -181,8 +180,6 @@ void vPortTaskExitCritical(void);
     #define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31UL - ucPortCountLeadingZeros( ( uxReadyPriorities ) ) )
 
 #endif /* configUSE_PORT_OPTIMISED_TASK_SELECTION */
-
-#define portINTC_CPR (HWINTC_CPR)
 
 static portFORCE_INLINE void vPortMaskInterrupts( void )
 {

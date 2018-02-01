@@ -30,8 +30,6 @@
 #include "FreeRTOS.h"
 #include "cpudefs.h"
 
-#define TICK_INTERVAL  ((configCPU_CLOCK_HZ / configTICK_RATE_HZ ) - 1UL)
-
 /* Macro to calculate bit value for given INTC input */
 #define OSINTCInputBit(n) ( (unsigned int)(OsINTCInputs[(n)/8U] >> ((n)%8U)) & 0x1U )
 
@@ -122,15 +120,15 @@ void OS_PlatformInit(void)
 	HWINTC_IACKR = (uint32_t)&OSInterruptsHandlerTable;
 }
 
-void prvPortTimerSetup(void* paramF)
+void prvPortTimerSetup(void* paramF, uint32_t tick_interval)
 {
   OS_InstallInterruptHandler(paramF, HWPIT_GET_INTID(configUSE_PIT_CHANNEL), 1 /* priority */);
 
   HWPIT_MCR = HWPIT_MCR_FRZ; /* freeze bit on - stop while debugging */
 
   // PIT_LDVAL : tick period
-  HWPIT_LDVAL(configUSE_PIT_CHANNEL) = TICK_INTERVAL;
- 
+  HWPIT_LDVAL(configUSE_PIT_CHANNEL) = tick_interval;
+
   // PIT_RTI_TCTRL: start channel, enable IRQ
   HWPIT_TCTRL(configUSE_PIT_CHANNEL) = HWPIT_TCTRL_TEN | HWPIT_TCTRL_TIE; 
 

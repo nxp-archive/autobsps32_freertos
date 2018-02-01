@@ -25,6 +25,7 @@
 ==================================================================================================*/
 
 #include "FreeRTOSConfig.h"
+#include "cpu_defines.h"
 /*
    STACK FRAME DESIGN: Depth: (0x98, or 152 bytes modulo 8 bytes = 19)
               ************* ______________
@@ -79,14 +80,14 @@
     .extern pxSystemStackPointer
     .extern vTaskSwitchContext
 
-    # CORE0 Interrupt Acknowledge Register address
-    .equ    INTC_IACKR_PRC0, 0xFC040020
-    # CORE0 End Of Interrupt Register address
-    .equ    INTC_EOIR_PRC0,  0xFC040030
     # Address of the INTC_CPR0 register
-    .equ    INTC_CPR0_ADDR,  0xFC040010
+    .equ    INTC_CPR0_ADDR,  INTC_CPR_ADDR
+    # CORE0 Interrupt Acknowledge Register address
+    .equ    INTC_IACKR_PRC0, INTC_IACKR_PRC_ADDR
+    # CORE0 End Of Interrupt Register address
+    .equ    INTC_EOIR_PRC0,  INTC_EOIR_PRC_ADDR
     # Number of bits in the INTVEC field of IACKR
-    .equ    INTC_IACKR_INTVEC_BITWIDTH, 10
+    .equ    INTC_IACKR_INTVEC_BITWIDTH, INTC_IACKR_INTVEC_BITWIDTH_NUM
     # Saves context to task stack
     # Relies on HID0.ICR being set so outstanding reservations are cleared whenever an external interrupt occurs,
     # which handles clearing reservations in task->ISR and ISR->ISR context switches. ISR->task and task->task

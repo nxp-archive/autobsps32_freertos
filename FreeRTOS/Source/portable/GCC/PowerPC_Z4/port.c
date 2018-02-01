@@ -44,6 +44,8 @@
                                           portEXTERNAL_INTERRUPT_ENABLE | \
                                           portMACHINE_CHECK_ENABLE )
 
+#define TICK_INTERVAL  ((configCPU_CLOCK_HZ / configTICK_RATE_HZ ) - 1)
+
 /*-----------------------------------------------------------*/
 
 uint32_t *pxSystemStackPointer = NULL;
@@ -195,11 +197,11 @@ portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, TaskFunctio
 }
 
 /*-----------------------------------------------------------*/
-extern void prvPortTimerSetup(void*);
+extern void prvPortTimerSetup(void*, uint32_t);
 /* Note that you must setup and install the timer interrupt before calling this */
 portBASE_TYPE xPortStartScheduler( void )
 {
-	prvPortTimerSetup(vPortTickISR);
+	prvPortTimerSetup(vPortTickISR, TICK_INTERVAL);
 
     vPortStartFirstTask();
 
@@ -216,9 +218,8 @@ void vPortEndScheduler( void )
 		portNOP();
 	}
 }
-#include "hw_platform.h"
 /*-----------------------------------------------------------*/
-extern void resetTimer(void);
+extern void prvPortTimerReset(void);
 void vPortTickISR(void)
 {
     /* The SysTick runs at the lowest interrupt priority, and xTaskIncrementTick
@@ -231,7 +232,7 @@ void vPortTickISR(void)
 
     BaseType_t xHigherPriorityTaskWoken = xTaskIncrementTick();
 
-	resetTimer();
+	prvPortTimerReset();
     #if (configUSE_PREEMPTION == 1)
         /* Instead of calling portYIELD_FROM_ISR here, call vTaskSwitchContext directly
          * if xHigherPriorityTaskWoken is true to avoid the redundant calls to
@@ -243,7 +244,7 @@ void vPortTickISR(void)
         }
     #else
         /* Avoid unused variable warnings if preemption is disabled */
-        (void)xHigherPriorityTaskWoken;        
+        (void)xHigherPriorityTaskWoken;
     #endif
 
     vPortUnmaskInterrupts(uxSavedInterruptStatus);

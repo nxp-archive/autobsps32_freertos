@@ -24,9 +24,14 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 #================================================================================================*/
-ASFLAGS  := -g --gdwarf-sections --gstabs+ -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM)
+PLATFORM_DEF := $(shell echo $(PLATFORM) | tr a-z A-Z)
+ASFLAGS  := -g --gdwarf-sections --gstabs+ -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM) \
+            -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC_Z4
 
-CPPFLAGS  := -g -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM)
+CPPFLAGS  := -g -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM) \
+             -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC_Z4 \
+             -D$(PLATFORM_DEF)=1
+
 
 CFLAGS   :=  --sysroot=$(shell $(CYGPATH) -m -i $(COMPILER_LIBS)) \
             -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/include \
@@ -36,7 +41,8 @@ CFLAGS   :=  --sysroot=$(shell $(CYGPATH) -m -i $(COMPILER_LIBS)) \
 			-I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM)\
 			-mcpu=e200z4 -mfpu=sp_full -mvle -mfloat-gprs=yes -mhard-float -static \
 			-O3 -g3 -fno-strict-aliasing -Wall -Wextra -Werror -Wdouble-promotion -Wfloat-equal \
-			-Wconversion -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections
+			-Wconversion -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections \
+			-D$(PLATFORM_DEF)=1
 
 CFLAGS += -DTEST_DYNAMIC=1 -DconfigSUPPORT_STATIC_ALLOCATION=0 -DconfigSUPPORT_DYNAMIC_ALLOCATION=1
 

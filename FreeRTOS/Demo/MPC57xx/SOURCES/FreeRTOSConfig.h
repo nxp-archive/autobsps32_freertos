@@ -89,6 +89,12 @@ to exclude the API function. */
 #define INCLUDE_xTimerPendFunctionCall            1
 #define configMAX_API_CALL_INTERRUPT_PRIORITY     8
 
+// #define vPortISRHandler  /* define macro of EI_ESR */
+// #define xPortSyscall  /* define macro of SC_ESR */
+
+// #define prvPortTimerSetup prvPortTimerSetup /* define macro of timer setup function */
+#define prvPortTimerReset resetTimer /* define macro of timer reset function */
+
 #endif /* FREERTOS_CONFIG_H */
 
 
