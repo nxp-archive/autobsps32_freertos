@@ -4,7 +4,8 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
-*   
+*   Copyright 2018 NXP.
+*
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
 *   Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
@@ -51,7 +52,9 @@ extern "C" {
 #define portSTACK_TYPE       unsigned portLONG
 #define portBASE_TYPE        portLONG
 
-#define configASSERT(a)			{ if (!(a)) { while (1) {} } }
+#ifndef configASSERT
+    #define configASSERT(a)			{ if (!(a)) { while (1) {} } }
+#endif
 
 typedef portSTACK_TYPE StackType_t;
 typedef long BaseType_t;
@@ -123,10 +126,10 @@ void vPortTickISR( void );
 /*-----------------------------------------------------------*/
 
 /* SPR access macros */
-#define MFSPR(dest, spr)    __asm__ volatile ("mfspr %0, %1" : "=r" (dest) : "i" (spr))
-#define MTSPR(spr, src)     __asm__ volatile ("mtspr %0, %1" : : "i" (spr), "r" (src))
-#define MFMSR(dest)         __asm__ volatile ("mfmsr %0"     : "=r" (dest))
-#define MTMSR(src)          __asm__ volatile ("mtmsr %0"     : : "r" (src))
+#define portGetSPR(dest, spr)    __asm__ volatile ("mfspr %0, %1" : "=r" (dest) : "i" (spr))
+#define portSetSPR(spr, src)     __asm__ volatile ("mtspr %0, %1" : : "i" (spr), "r" (src))
+#define portGetMSR(dest)         __asm__ volatile ("mfmsr %0"     : "=r" (dest))
+#define portSetMSR(src)          __asm__ volatile ("mtmsr %0"     : : "r" (src))
 
 /*-----------------------------------------------------------*/
 

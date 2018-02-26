@@ -1,6 +1,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
+*   Copyright 2018 NXP.
 *
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
@@ -92,7 +93,7 @@ portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, TaskFunctio
     register portSTACK_TYPE msr, srr1;
     portSTACK_TYPE *pxBackchain;
 
-    MFMSR(msr);
+    portGetMSR(msr);
 
     srr1 = portINITIAL_MSR | msr;
 
