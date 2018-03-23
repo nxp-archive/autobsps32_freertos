@@ -37,11 +37,11 @@ include ../heap.mk
 $(OUT_ROOT)/obj/$(TEST_NAME)/%.o: $(OS_ROOT)/Source/%.c
 	$(CC) $(CFLAGS) -c -o $(shell $(CYGPATH) -m -i $@) $(shell $(CYGPATH) -m -i $<)
 
-$(OUT_ROOT)/obj/$(TEST_NAME)/%.o: $(OS_ROOT)/Source/portable/GCC/PowerPC_Z4/%.c
+$(OUT_ROOT)/obj/$(TEST_NAME)/%.o: $(OS_ROOT)/Source/portable/GCC/PowerPC/%.c
 	$(CC) $(CFLAGS) -c -o $(shell $(CYGPATH) -m -i $@) $(shell $(CYGPATH) -m -i $<)
 
 $(OUT_ROOT)/obj/$(TEST_NAME)/%.o: $(OUT_ROOT)/obj/$(TEST_NAME)/%.s
 	$(AS) $(ASFLAGS) -o $(shell $(CYGPATH) -m -i $@) $(shell $(CYGPATH) -m -i $<)
 
-$(OUT_ROOT)/obj/$(TEST_NAME)/%.s: $(OS_ROOT)/Source/portable/GCC/PowerPC_Z4/%.s
+$(OUT_ROOT)/obj/$(TEST_NAME)/%.s: $(OS_ROOT)/Source/portable/GCC/PowerPC/%.s
 	$(CPP) $(CPPFLAGS) -o $(shell $(CYGPATH) -m -i $@) $(shell $(CYGPATH) -m -i $<)

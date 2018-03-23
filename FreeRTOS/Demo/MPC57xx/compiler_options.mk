@@ -26,16 +26,16 @@
 #================================================================================================*/
 PLATFORM_DEF := $(shell echo $(PLATFORM) | tr a-z A-Z)
 ASFLAGS  := -g --gdwarf-sections --gstabs+ -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM) \
-            -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC_Z4
+            -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC
 
 CPPFLAGS  := -g -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM) \
-             -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC_Z4 \
+             -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC \
              -D$(PLATFORM_DEF)=1
 
 
 CFLAGS   :=  --sysroot=$(shell $(CYGPATH) -m -i $(COMPILER_LIBS)) \
             -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/include \
-			-I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC_Z4 \
+			-I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC \
 			-I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES \
 			-I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX \
 			-I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM)\
