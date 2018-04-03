@@ -1,7 +1,7 @@
 #==================================================================================================
 #
 #  (c) Copyright 2015 Freescale Semiconductor Inc.
-#  Copyright 2017 NXP
+#  Copyright 2017-2018 NXP
 #  
 #  This program is free software; you can redistribute it and/or modify it under
 #  the terms of the GNU General Public License (version 2) as published by the

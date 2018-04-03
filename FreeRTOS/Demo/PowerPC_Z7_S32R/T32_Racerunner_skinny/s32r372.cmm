@@ -1,0 +1,55 @@
+;
+; Copyright 2018 NXP
+;
+
+
+;=== elf-file for debugging ===
+&filename="../OUT/DEMO"
+&optimizePLL=0
+
+;set titles
+Title "Run Racerunner skiny Demo blink led"
+
+;set equal paths
+&pwd=os.pwd()
+
+;=========================================================================
+; System settings
+;=========================================================================
+; CPU setup
+SYStem.RESet
+SYStem.BdmClock 2.0MHz
+SYStem.CPU S32R372
+SyStem.Option.SLOWRESET ON
+SYStem.CONFIG.SLAVE OFF
+SYStem.Option.WATCHDOG OFF
+SYStem.Up
+
+;switch to HLL mode debugging
+MODE.HLL
+
+wait 500ms
+
+;initialize internal SRAM.
+Data.Set EA:0x40000000--0x4007FFFF %quad 0x0
+
+map.bonchip 0x0--0x4007FFFF
+
+DO flash.cmm &filename
+
+;display source
+Data.List
+
+;clear all breakpoints
+Break.delete /ALL
+
+R.S IP __start
+
+register /sl
+
+v.w ui32_ms_cnt ui32_vLedTask0 ui32_vLedTask1 ui32_vLedTask2
+
+ENDDO
+
+
+

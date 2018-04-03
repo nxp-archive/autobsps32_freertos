@@ -1,3 +1,5 @@
+/* Copyright 218 NXP */
+
 #ifndef CPU_DEFINES_H
 #define CPU_DEFINES_H
 
