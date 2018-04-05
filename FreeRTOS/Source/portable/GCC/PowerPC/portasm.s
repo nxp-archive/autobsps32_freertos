@@ -1,7 +1,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
-*
+*   Copyright 2018 NXP.
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
 *   Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
@@ -81,13 +81,22 @@
     .extern vTaskSwitchContext
 
     # Address of the INTC_CPR0 register
-    .equ    INTC_CPR0_ADDR,  INTC_CPR_ADDR
+    .equ    INTC_CPR0_ADDR,  INTC_CPR_ADDR_BASE
     # CORE0 Interrupt Acknowledge Register address
-    .equ    INTC_IACKR_PRC0, INTC_IACKR_PRC_ADDR
+    .equ    INTC_IACKR_PRC0, INTC_IACKR_PRC_ADDR_BASE
     # CORE0 End Of Interrupt Register address
-    .equ    INTC_EOIR_PRC0,  INTC_EOIR_PRC_ADDR
+    .equ    INTC_EOIR_PRC0,  INTC_EOIR_PRC_ADDR_BASE
     # Number of bits in the INTVEC field of IACKR
     .equ    INTC_IACKR_INTVEC_BITWIDTH, INTC_IACKR_INTVEC_BITWIDTH_NUM
+
+    .equ    INTC_OFFSET, INTC_OFFSET_NUM
+
+    # Take out the processor used and add the offset of the processor to the reg
+    .macro portGET_OFFSET_PROCESSOR    reg
+        mfspr         r6, 286
+        se_slwi       r6, INTC_OFFSET
+        add           \reg, r6, \reg
+    .endm
     # Saves context to task stack
     # Relies on HID0.ICR being set so outstanding reservations are cleared whenever an external interrupt occurs,
     # which handles clearing reservations in task->ISR and ISR->ISR context switches. ISR->task and task->task
@@ -177,6 +186,7 @@
     # Macro to set current interrupt priority to max API call priority, allowing other non-API ISRs to preempt (r7,r8 used as scratch registers)
     .macro portSET_INTERRUPT_PRIORITY_CEILING
       e_lis     r7, INTC_CPR0_ADDR@ha                       # Load upper half of address of INTC_CPR0 register
+      portGET_OFFSET_PROCESSOR   r7                         # Take out the processor used and add the offset of the processor to the r7
       e_li      r8, configMAX_API_CALL_INTERRUPT_PRIORITY   # Load new current priority value
       e_stw     r8, INTC_CPR0_ADDR@l(r7)                    # Write INTC0_CPR to raise current interrupt priority
     .endm
@@ -184,6 +194,7 @@
     # Macro to set current interrupt priority to 0 (r7,r8 used as scratch registers)
     .macro portCLEAR_INTERRUPT_PRIORITY_CEILING
       e_lis     r7, INTC_CPR0_ADDR@ha                       # Load upper half of address of INTC_CPR0 register
+      portGET_OFFSET_PROCESSOR   r7                         # Take out the processor used and add the offset of the processor to the r7
       e_li      r8, 0                                       # Load new current priority value
       e_stw     r8, INTC_CPR0_ADDR@l(r7)                    # Write INTC0_CPR to reset current interrupt priority
     .endm
@@ -229,6 +240,7 @@ prologue:                                   # Interrupts implicitly disabled on 
 1:  portINCREMENT_NESTED_INTERRUPT_COUNT
 
     e_lis       r3, INTC_IACKR_PRC0@ha      # Save address of INTC_IACKR in r3
+    portGET_OFFSET_PROCESSOR   r3           # Take out the processor used and add the offset of the processor to the r3
     e_lwz       r3, INTC_IACKR_PRC0@l(r3)   # Save contents (vector table address) of INTC_IACKR in r3
 
     portENABLE_GLOBAL_INTERRUPTS            # Set MSR[EE] (must wait a couple clocks after reading IACKR)
@@ -248,6 +260,7 @@ epilogue:
     portDISABLE_GLOBAL_INTERRUPTS           # Clear MSR[EE]
 
     e_lis       r3, INTC_EOIR_PRC0@ha       # Load upper half of INTC_EOIR address to r3
+    portGET_OFFSET_PROCESSOR   r3           # Take out the processor used and add the offset of the processor to the r3
     e_stw       r3, INTC_EOIR_PRC0@l(r3)    # Load lower half of INTC_EOIR address to r3 and write contents to INTC_EOIR
 
     portLOAD_NESTED_INTERRUPT_COUNT

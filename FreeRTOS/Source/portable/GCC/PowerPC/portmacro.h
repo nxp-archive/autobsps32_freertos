@@ -88,7 +88,7 @@ enum portSYSCALL_e
 #define portBYTE_ALIGNMENT          32
 #define portNOP()                   __asm__ volatile ( "se_nop" )
 
-#define portINTC_CPR  (*(volatile unsigned int *)(INTC_CPR_ADDR))
+#define portINTC_CPR(coreId)  (*(volatile unsigned int *)(INTC_CPR_ADDR(coreId)))
 /*-----------------------------------------------------------*/
 
 #define COMPILER_BARRIER()          __asm__ volatile ( "" : : : "memory" )
@@ -187,7 +187,8 @@ void vPortTaskExitCritical(void);
 static portFORCE_INLINE void vPortMaskInterrupts( void )
 {
     BaseType_t msr;
-
+    uint32_t core_ID;
+    portGetSPR(core_ID,286);
     // See MPC5746C RM Rev 3   section 21.8.5.2  "Ensuring coherency" (most restrictive rules)
     // See MPC5646C RM Rev 5   section 19.10.4.2 "Ensuring coherency"
     // See MPC5607B RM Rev 7.2 section 18.7.5.2  "Ensuring coherency"
@@ -200,7 +201,7 @@ static portFORCE_INLINE void vPortMaskInterrupts( void )
     );
 
     /* Set current interrupt priority to max API priority */
-    portINTC_CPR = configMAX_API_CALL_INTERRUPT_PRIORITY;
+    portINTC_CPR(core_ID) = configMAX_API_CALL_INTERRUPT_PRIORITY;
 
     __asm__ volatile
     (
@@ -213,7 +214,9 @@ static portFORCE_INLINE void vPortMaskInterrupts( void )
 
 static portFORCE_INLINE UBaseType_t ulPortMaskInterruptsFromISR( void )
 {
-    UBaseType_t originalPriority = portINTC_CPR;
+    uint32_t core_ID;
+    portGetSPR(core_ID,286);
+    UBaseType_t originalPriority = portINTC_CPR(core_ID);
 
     vPortMaskInterrupts();
 
@@ -223,7 +226,8 @@ static portFORCE_INLINE UBaseType_t ulPortMaskInterruptsFromISR( void )
 static portFORCE_INLINE void vPortUnmaskInterrupts( UBaseType_t priority )
 {
     BaseType_t msr;
-
+    uint32_t core_ID;
+    portGetSPR(core_ID,286);
     // See MPC5746C RM Rev 3   section 21.8.5.2  "Ensuring coherency" (most restrictive rules)
     // See MPC5646C RM Rev 5   section 19.10.4.2 "Ensuring coherency"
     // See MPC5607B RM Rev 7.2 section 18.7.5.2  "Ensuring coherency"
@@ -237,7 +241,7 @@ static portFORCE_INLINE void vPortUnmaskInterrupts( UBaseType_t priority )
     );
 
     // Restore current interrupt priority
-    portINTC_CPR = priority;
+    portINTC_CPR(core_ID) = priority;
 
     __asm__ volatile
     (
