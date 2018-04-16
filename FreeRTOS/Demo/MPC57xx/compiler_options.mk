@@ -30,7 +30,7 @@ ASFLAGS  := -g --gdwarf-sections --gstabs+ -L -mregnames -mvle -I$(shell $(CYGPA
 
 CPPFLAGS  := -g -L -mregnames -mvle -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES -I$(shell $(CYGPATH) -m -i $(CRT_DIR))/SOURCES_MPC57XX/$(PLATFORM) \
              -I$(shell $(CYGPATH) -m -i $(OS_ROOT))/Source/portable/GCC/PowerPC \
-             -D$(PLATFORM_DEF)=1
+             -DCPU_$(PLATFORM_DEF)
 
 
 CFLAGS   :=  --sysroot=$(shell $(CYGPATH) -m -i $(COMPILER_LIBS)) \
@@ -42,7 +42,7 @@ CFLAGS   :=  --sysroot=$(shell $(CYGPATH) -m -i $(COMPILER_LIBS)) \
 			-mcpu=e200z4 -mfpu=sp_full -mvle -mfloat-gprs=yes -mhard-float -static \
 			-O3 -g3 -fno-strict-aliasing -Wall -Wextra -Werror -Wdouble-promotion -Wfloat-equal \
 			-Wconversion -Wpointer-arith -std=gnu99 -ffunction-sections -fdata-sections \
-			-D$(PLATFORM_DEF)=1
+			-DCPU_$(PLATFORM_DEF)
 
 CFLAGS += -DTEST_DYNAMIC=1 -DconfigSUPPORT_STATIC_ALLOCATION=0 -DconfigSUPPORT_DYNAMIC_ALLOCATION=1
 
