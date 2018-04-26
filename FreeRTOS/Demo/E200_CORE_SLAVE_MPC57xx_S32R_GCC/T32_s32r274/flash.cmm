@@ -1,0 +1,93 @@
+;
+; Copyright 2018 NXP
+;
+
+
+;
+;========= Script for flash initialization =========
+;
+
+local &elfname
+entry &elfname
+
+;========================================================================
+; Flash declaration
+;=========================================================================
+
+print "Starting FLASH sector creation:"
+
+    FLASH.RESet
+
+    ; Low address space
+    FLASH.Create 1. 0x00800000--0x00803FFF TARGET Quad 0x0000 /INFO "EEPROM Block 0"
+    FLASH.Create 1. 0x00804000--0x00807FFF TARGET Quad 0x0002 /INFO "EEPROM Block 2"
+    FLASH.Create 1. 0x00808000--0x0080BFFF TARGET Quad 0x0001 /INFO "EEPROM Block 1"
+    FLASH.Create 1. 0x0080C000--0x0080FFFF TARGET Quad 0x0003 /INFO "EEPROM Block 3"
+    ; Mid address space
+    FLASH.Create 2. 0x00F98000--0x00F9BFFF TARGET Quad 0x0100 /INFO "Flash block 0 - boot location 0"
+    FLASH.Create 2. 0x00F9C000--0x00F9FFFF TARGET Quad 0x0101 /INFO "Flash block 1 - boot location 1"
+    FLASH.Create 2. 0x00FA0000--0x00FAFFFF TARGET Quad 0x0102 /INFO "Flash block 2 - boot location 2"
+    FLASH.Create 2. 0x00FB0000--0x00FBFFFF TARGET Quad 0x0103 /INFO "Flash block 3 - boot location 3"
+    FLASH.Create 2. 0x00FC0000--0x00FCFFFF TARGET Quad 0x0104 /INFO "Flash block 4"
+    FLASH.Create 2. 0x00FD0000--0x00FDFFFF TARGET Quad 0x0105 /INFO "Flash block 5"
+    FLASH.Create 2. 0x00FE0000--0x00FEFFFF TARGET Quad 0x0106 /INFO "Flash block 6"
+    FLASH.Create 2. 0x00FF0000--0x00FFFFFF TARGET Quad 0x0107 /INFO "Flash block 7"
+    ; High address space
+    FLASH.Create 3. 0x00A00000--0x00A03FFF NOP    Quad 0x0200 /INFO "CSE2 Flash Block 0"
+    FLASH.Create 3. 0x00A04000--0x00A07FFF NOP    Quad 0x0201 /INFO "CSE2 Flash Block 1"
+    ; 256k address space
+    FLASH.Create 4. 0x01000000--0x0103FFFF TARGET Quad 0x0300 /INFO "Flash block 8 - boot location 4"
+    FLASH.Create 4. 0x01040000--0x0107FFFF TARGET Quad 0x0301 /INFO "Flash block 9 - boot location 5"
+    FLASH.Create 4. 0x01080000--0x010BFFFF TARGET Quad 0x0302 /INFO "Flash block 10 - boot location 6"
+    FLASH.Create 4. 0x010C0000--0x010FFFFF TARGET Quad 0x0303 /INFO "Flash block 11 - boot location 7"
+    FLASH.Create 4. 0x01100000--0x0113FFFF TARGET Quad 0x0304 /INFO "Flash block 12"
+    FLASH.Create 4. 0x01140000--0x0117FFFF TARGET Quad 0x0305 /INFO "Flash block 13"
+    ; UTEST address space
+    FLASH.Create 6. 0x00400000--0x00403FFF TARGET Quad 0x0500 /OTP /INFO "UTEST"
+
+    ; Overlay enabled mapping
+    FLASH.CreateALIAS 0x08F98000--0x08FFFFFF 0x00F98000   ; Small & medium flash blocks
+    FLASH.CreateALIAS 0x09000000--0x0917FFFF 0x01000000   ; Large flash blocks
+
+    FLASH.TARGET E:0x40000000 E:0x40002000 0x1000 ~~/demo/powerpc/flash/quad/c55fm5746m.bin /STACKSIZE 0x0400 /DualPort
+
+;========================================================================
+; Flash programming
+
+print "Flash Programming start"
+FLASH.UNLOCK ALL
+FLASH.ReProgram ALL /Erase
+Data.Load.Elf &elfname.elf /Quad
+
+FLASH.ReProgram OFF
+
+;========================================================================
+
+;Batch Job for debugging in internal FLASH
+;clear the TRACE32 screen
+;WinCLEAR
+
+SYStem.RESet
+SYStem.BdmClock 2.0MHz
+SYStem.CPU S32R274
+SYStem.CONFIG.CORE 3. 1.
+SyStem.Option.SLOWRESET ON
+SYStem.CONFIG.SLAVE OFF
+SYStem.Option.WATCHDOG OFF
+SYStem.OPTION DUALPORT ON
+
+; enable trace
+nexus.portmode 1250Mbps
+nexus.stall 1/4
+
+Map.BOnchip 0x00F98000--0x0117FFFF
+
+;restart the CPU with debug mode enable
+SYStem.Option.PC 0x00FC0000
+
+SYSTem.Up
+
+;load program (if FLASH selected than load only debug symbols)
+Data.Load.Elf &elfname.elf  /GLOBTYPES /NOCODE
+
+ENDDO
