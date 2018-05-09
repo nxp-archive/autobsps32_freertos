@@ -1,0 +1,51 @@
+;
+; Copyright 2018 NXP
+;
+
+;=== elf-file for debugging ===
+&filename="../OUT/DEMO"
+&optimizePLL=0
+
+;set titles
+ Title "Calypso6M - core_0 (z4a)"
+
+;set equal paths
+&pwd=os.pwd()
+
+;=========================================================================
+; System settings
+;=========================================================================
+; CPU setup
+SYStem.RESet
+SYStem.BdmClock 4MHz
+SYStem.CPU MPC5748G
+SYStem.CONFIG.CORE 1. 1.
+SYStem.CONFIG.SLAVE OFF
+SYStem.Option.WATCHDOG OFF
+SYStem.OPTION DUALPORT ON
+SYStem.Option.SLOWRESET ON
+SYStem.up
+
+;switch to HLL mode debugging
+MODE.HLL
+
+wait 500ms
+
+;initialize internal SRAM.
+Data.Set EA:0x40000000--0x400BFFFF %quad 0x0
+
+map.bonchip 0x0--0x400Bffff
+
+DO flash.cmm &filename
+
+;clear all breakpoints
+Break.delete /ALL
+
+R.S IP __start
+
+;display source
+Data.List
+register /sl
+
+v.w ui32_ms_cnt_hook ui32_coreID  ui32_vLedTask1 ui32_vLedTask0
+ENDDO
