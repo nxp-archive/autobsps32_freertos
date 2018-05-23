@@ -274,6 +274,8 @@ static portFORCE_INLINE void portINCREMENT_CRITICAL_NESTING( void )
         "mtsprg   1, %0 \n\t" // store to SPRG1
         : "=kregs" (ulCriticalNesting)
     );
+    /* ignore warning ulCriticalNesting was set but never used*/
+    (void) ulCriticalNesting;
 }
 
 static portFORCE_INLINE UBaseType_t portDECREMENT_CRITICAL_NESTING( void )

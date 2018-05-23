@@ -198,7 +198,7 @@ portSTACK_TYPE *pxPortInitialiseStack( portSTACK_TYPE *pxTopOfStack, TaskFunctio
 }
 
 /*-----------------------------------------------------------*/
-extern void prvPortTimerSetup(void*, uint32_t);
+extern void prvPortTimerSetup(void(*)(void), uint32_t);
 /* Note that you must setup and install the timer interrupt before calling this */
 portBASE_TYPE xPortStartScheduler( void )
 {
