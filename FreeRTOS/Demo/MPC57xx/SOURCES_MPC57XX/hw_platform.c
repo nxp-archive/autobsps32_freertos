@@ -1,7 +1,7 @@
 /*==================================================================================================
 *
 *   (c) Copyright 2015 Freescale Semiconductor Inc.
-*   Copyright 2017 NXP
+*   Copyright 2017-2018 NXP
 *   
 *   This program is free software; you can redistribute it and/or modify it under
 *   the terms of the GNU General Public License (version 2) as published by the
@@ -120,7 +120,7 @@ void OS_PlatformInit(void)
 	HWINTC_IACKR = (uint32_t)&OSInterruptsHandlerTable;
 }
 
-void prvPortTimerSetup(void* paramF, uint32_t tick_interval)
+void prvPortTimerSetup(OSInterruptHandlerPtr paramF, uint32_t tick_interval)
 {
   OS_InstallInterruptHandler(paramF, HWPIT_GET_INTID(configUSE_PIT_CHANNEL), 1 /* priority */);
 

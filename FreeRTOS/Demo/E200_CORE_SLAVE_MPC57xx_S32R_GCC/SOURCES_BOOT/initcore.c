@@ -5,9 +5,6 @@
 /* Include hardware configuration */
 #include "hw_platform.h"
 
-
-volatile uint32_t ui32_ms_cnt_loop = 0;
-
 #define KEY_VALUE 0x5AF0ul
 
 extern void __startSlave(void);
@@ -32,7 +29,5 @@ void hw_init()
 
 int loop(void)
 {
-    for(;;) {
-        ui32_ms_cnt_loop++;
-    }
+    return 0;
 }

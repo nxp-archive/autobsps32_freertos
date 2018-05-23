@@ -92,7 +92,7 @@ void OS_PlatformInit(void)
     HWINTC_IACKR = (uint32_t)&OSInterruptsHandlerTable;
 }
 
-void prvPortTimerSetup(void* paramF, uint32_t tick_interval)
+void prvPortTimerSetup(OSInterruptHandlerPtr paramF, uint32_t tick_interval)
 {
     OS_InstallInterruptHandler(paramF, HWPIT_GET_INTID(configUSE_PIT_CHANNEL), 1 /* priority */);
 

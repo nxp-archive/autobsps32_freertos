@@ -24,7 +24,7 @@ extern "C" {
     /* interrupt handlers type */
     typedef void(*OSInterruptHandlerPtr)(void);
     /* for unused/unexpected interrupts */
-    void prvPortTimerSetup(void* paramF, uint32_t tick_interval);
+    void prvPortTimerSetup(OSInterruptHandlerPtr paramF, uint32_t tick_interval);
     void resetTimer(void);
     void OS_UnusedInterruptHandler(void);
     void OS_InstallInterruptHandler(OSInterruptHandlerPtr handlerFn, unsigned int vectorNum, unsigned char Priority);

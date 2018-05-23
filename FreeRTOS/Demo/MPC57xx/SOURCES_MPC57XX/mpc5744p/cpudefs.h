@@ -1,5 +1,5 @@
 /*
-*   Copyright 2017 NXP
+*   Copyright 2017-2018 NXP
 */
 
 #ifndef __CPUDEFS_H__
@@ -22,8 +22,8 @@ extern "C"
     #define MPC574xx_ID                 0x015A0000 /* RCHW boot ID for MPC574xx devices    */
 
     #define RCHWDATA_Init()  \
-    RCHWDATA const unsigned int RCHW2=(const unsigned int)__start; /*/ entry point /*/\
-    RCHWDATA const unsigned int RCHW1=RCHW_VAL; 
+    RCHWDATA const unsigned int RCHW2=(const unsigned int)__start; /* entry point */\
+    RCHWDATA const unsigned int RCHW1=RCHW_VAL;
 
     #define HWINTC_INTERRUPTS    (1024U)
 

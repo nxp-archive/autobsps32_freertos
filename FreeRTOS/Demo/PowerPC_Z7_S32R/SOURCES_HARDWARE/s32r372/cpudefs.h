@@ -35,7 +35,7 @@ extern "C"
     #define RCHW_VAL (VLE_ENABLE | MPC574xx_ID)
 
     #define RCHWDATA_Init()  \
-    RCHWDATA const unsigned int RCHW2=(const unsigned int)__start; /*/ entry point /*/\
+    RCHWDATA const unsigned int RCHW2=(const unsigned int)__start; /* entry point */\
     RCHWDATA const unsigned int RCHW1=RCHW_VAL;
 
     #define HWINTC_INTERRUPTS    (755U)
