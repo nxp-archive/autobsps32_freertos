@@ -5,10 +5,10 @@ STACK_SIZE = DEFINED(__stack_size__) ? __stack_size__ : 0x0400;
 
 MEMORY
 {
-	VECTOR_region	(RX):	ORIGIN = 0x00040000, LENGTH = 0x00040410
+	VECTOR_region	(RX):	ORIGIN = 0x00040000, LENGTH = 0x00000410
 	ROM_region		(RX):	ORIGIN = 0x00040410, LENGTH = 0x0003FBF0
 	RAM_region		(RW):	ORIGIN = 0x1FFF8410, LENGTH = 0x00007BF0
-	RAM2_region		(RW):	ORIGIN = 0x20000000, LENGTH = 0x00007FFF
+	RAM2_region		(RW):	ORIGIN = 0x20000000, LENGTH = 0x00006FFF
 }
 
 SECTIONS
@@ -131,6 +131,7 @@ SECTIONS
 		/* This is used by the startup in order to initialize the .bss section */
 		. = ALIGN(4);
 		__START_BSS = .;
+		__SP_INIT = .;
 		__bss_start__ = .;
 		*(.bss)
 		*(.bss*)
