@@ -12,7 +12,7 @@
   	SECTION .noinit : CODE
   	EXPORT  __startup
 	EXTERN __vector_table
-	EXTERN  __BOOT_STACK_ADDRESS
+	EXTERN  __StackLimit
 
 VTOR_REG EQU 0xE000ED08
 
@@ -31,8 +31,8 @@ __startup
 	MOV     r10,#0
 	MOV     r11,#0
 	MOV     r12,#0
-	/* Setup only for FPGA */
-	LDR     r13, =__BOOT_STACK_ADDRESS
+
+	LDR     r13, =__StackLimit
 
 	/* Relocate vector table to RAM */
 	LDR  r0, =VTOR_REG
