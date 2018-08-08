@@ -1,4 +1,7 @@
 /*
+ *
+ * Copyright 2018 NXP
+ *
  * File:    startup.c
  * Purpose: Generic Kinetis startup code
  *
@@ -15,6 +18,10 @@
 	#pragma section = "CodeRelocateRam"
 #endif
 
+/* initialization function for DATA and BSS regions */
+#if (defined(IAR))
+    extern void __iar_data_init3(void);
+#endif
 /********************************************************************/
 void
 common_startup(void)
@@ -23,6 +30,10 @@ common_startup(void)
 	uint32 n;
 
 	uint8 * bss_start, * bss_end;
+
+    #if (defined(IAR))
+        __iar_data_init3();
+    #endif
 
 	#if (defined(APP_FLASH))
 		#if (defined(CW))
