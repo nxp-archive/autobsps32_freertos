@@ -19,18 +19,18 @@ ENTRY &load_to &elf_file &load_params &core_no
 &optimizePLL=0
 
 ;=========================================================================
-; Variables settings  
+; Variables settings
 ;=========================================================================
 
 ;=========================================================================
-; System settings  
+; System settings
 ;=========================================================================
 ;cpu settings - cortexm4, S32K144
 system.reset
 SYStem.Option TRST off
 SYStem.Option ResBreak off
 SYStem.Option WaitReset ON
-SYStem.CPU CortexM4F
+SYStem.CPU S32K144
 ;SYStem.CONFIG MEMORYACCESSPORT 3.
 SYStem.JtagClock 100KHz
 sys.up
@@ -64,25 +64,18 @@ else
 IF "&load_to"=="flash"
 (
 ;=========================================================================
-; Flash declaration 
+; Flash declaration
 ;=========================================================================
 print "Starting FLASH sector creation:"
-    FLASH.RESet
+GOSUB FlashDeclaration
 
-  FLASH.Create 1. 0x00000000--0x0000FFF 0x1000 NOP Quad
-  FLASH.Create 2. 0x00001000--0x0007FFFF 0x1000 TARGET Quad
-   
-  ;FLASH.Create 3. 0x10000000--0x1000FFFF 0x800 TARGET Quad
-  
-  FLASH.TARGET 0x1FFFF000 0x20000000 0x1000 ~~/demo/arm/flash/quad/s32k.bin
-  
 )
 ;========================================================================
 ; Flash programming example
 ;
 ; Flash programming speed is about three times faster when memory class E:
 ; is used for data buffer (DUALPORT memory access). For DUALPORT access it
-; is required to setup MemAccess NEXUS for both, NEXUS and JTAG debugger. 
+; is required to setup MemAccess NEXUS for both, NEXUS and JTAG debugger.
 
 IF "&load_to"=="flash"
 (
@@ -105,7 +98,7 @@ ELSE IF "&load_to"=="ERASE_ONLY"
 (
    flash.unlock all
    flash.auto off
-   flash.ERASE ALL	
+   flash.ERASE ALL
    ENDDO
 )
 TrOnchip.Set CORERESET OFF
@@ -116,7 +109,7 @@ system.reset
 SYStem.Option TRST off
 SYStem.Option ResBreak off
 SYStem.Option WaitReset ON
-SYStem.CPU CortexM4F
+SYStem.CPU S32K144
 
 SYStem.JtagClock 100KHz
 sys.up
@@ -132,14 +125,14 @@ IF "&load_to"=="flash"
 ELSE
 (
    ; initialize internam SRAM
-   Data.Load.Elf &elf_file /GLOBTYPES
+   Data.Load.Elf &elf_file EA:0x1FFF8000--0x20006FFF /GLOBTYPES
 )
 
 
 WinCLEAR
 data.list
 WinPOS 84.125 0.0 63. 41. 0. 0. W001
-Per , /SPOTLIGHT 
+Per , /SPOTLIGHT
 
 WinPOS 84.25 45.0 63. 12. 0. 0. W000
 Register /SPOTLIGHT
@@ -151,37 +144,67 @@ Register.Set R13 __StackLimit
 
 ENDDO
 
+FlashDeclaration:
+
+  PRIVATE &FlashDriver &PFlashSize &DFlashSize &PFlashAsDFlash
+
+  &PFlashAsDFlash=0x00
+  IF CPUIS("S32K144")
+  (
+    &FlashDriver="s32k.bin"
+    &PFlashSize=0x80000
+    &DFlashSize=0x10000
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  IF (&PFlashSize==(0x20000||0x40000||0x80000||0x100000||0x200000))
+  (
+    FLASH.Create 1. 0x00000000--(&PFlashSize-&PFlashAsDFlash-0x1) 0x1000 TARGET Quad
+  )
+
+  IF &DFlashSize>=0x10000
+    FLASH.Create 2. 0x10000000--0x1000FFFF 0x800 TARGET Quad
+
+  FLASH.TARGET 0x1FFFF000 0x20000000 0x1000 ~~/demo/arm/flash/quad/&FlashDriver
+
+  RETURN
+
 DisableBootrom:
   Data.Set SD:0x4007F010 %LE %Long 0x6
   Data.Set SD:0x4007F014 %LE %Long 0x0
   RETURN
-  
+
 DisableWatchdog:
+(
   LOCAL &tmp1 &tmp2
   &tmp1=Data.Long(ST:0x20000000)
   &tmp2=Data.Long(ST:0x20000004)
-
+  Register.SWAP
   ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
   ; of 128 cycles. Therefor the unlock sequence need to be done by a small target program.
-  Data.Assemble ST:0x20000000  strh r1,[r0]  ;SD:0x4005200E = 0xC520   (Key 1)
-  Data.Assemble ,              strh r2,[r0]  ;SD:0x4005200E = 0xD928   (Key 2)
-  Data.Assemble ,              strh r4,[r3]  ;SD:0x40052000 = 0x0000   (Config register)
+  Data.Assemble ST:0x20000000  str  r1,[r0]  ;SD:0x40052004 = 0xD928C520   (Key)
+  Data.Assemble ,              str  r3,[r2]  ;SD:0x40052000 = 0x00002120   (Control register)
+  Data.Assemble ,              str  r5,[r4]  ;SD:0x40052008 = 0x0000FFFF   (Timeout value)
   Data.Assemble ,              bkpt #0
   Register.Set PC 0x20000000
   Register.Set SP 0x20001000
-  Register.Set R0 0x4005200E
-  Register.Set R1 0xC520
-  Register.Set R2 0xD928
-  Register.Set R3 0x40052000
-  Register.Set R4 0x0
+  Register.Set R0 0x40052004
+  Register.Set R1 0xD928C520
+  Register.Set R2 0x40052000
+  Register.Set R3 0x00002120
+  Register.Set R4 0x40052008
+  Register.Set R5 0x0000FFFF
   Go.direct
   WAIT !RUN()
 
   Data.Set ST:0x20000000 %Long &tmp1
   Data.Set ST:0x20000004 %Long &tmp2
+  Register.SWAP
 
   RETURN
-
-
-
+)
 
