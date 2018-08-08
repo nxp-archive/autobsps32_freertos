@@ -34,8 +34,7 @@
  * Include the cpu specific header file
  */
 #if (defined(CPU_S32K144))
-	#include <S32K144.h>
-	#include <S32K144_extension.h>
+	#include "S32K144.h"
 #else
 	#error "No valid CPU defined"
 #endif

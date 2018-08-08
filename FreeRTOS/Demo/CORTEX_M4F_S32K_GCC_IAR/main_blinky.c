@@ -188,7 +188,7 @@ static void prvButtonLEDTimerCallback( TimerHandle_t xTimer )
 {
 	/* The timer has expired - so no button pushes have occurred in the last
 	five seconds - turn the LED off. */
-	GPIOC_PSOR = mainTIMER_CONTROLLED_LED;
+	PTC->PSOR = mainTIMER_CONTROLLED_LED;
 }
 /*-----------------------------------------------------------*/
 
@@ -200,7 +200,7 @@ portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	/* The button was pushed, so ensure the LED is on before resetting the
 	LED timer.  The LED timer will turn the LED off if the button is not
 	pushed within 5000ms. */
-	GPIOC_PCOR = mainTIMER_CONTROLLED_LED;
+	PTC->PCOR = mainTIMER_CONTROLLED_LED;
 
 	/* This interrupt safe FreeRTOS function can be called from this interrupt
 	because the interrupt priority is below the
@@ -208,7 +208,7 @@ portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	xTimerResetFromISR( xButtonLEDTimer, &xHigherPriorityTaskWoken );
 
 	/* Clear the interrupt before leaving. */
-	PORTC_ISFR = 0xFFFFFFFFUL;
+	PORTC->ISFR = 0xFFFFFFFFUL;
 
 	/* If calling xTimerResetFromISR() caused a task (in this case the timer
 	service/daemon task) to unblock, and the unblocked task has a priority
@@ -259,7 +259,7 @@ unsigned long ulReceivedValue;
 		is it the expected value?  If it is, toggle the LED. */
 		if( ulReceivedValue == 100UL )
 		{
-		    GPIOB_PTOR = mainTASK_CONTROLLED_LED;
+		    PTB->PTOR = mainTASK_CONTROLLED_LED;
 		}
 	}
 }
@@ -267,8 +267,10 @@ unsigned long ulReceivedValue;
 
 static void prvSetupHardware( void )
 {
+    PCC->PCCn[PCC_PORTB_INDEX] = PCC_PCCn_CGC(1);
+    PCC->PCCn[PCC_PORTC_INDEX] = PCC_PCCn_CGC(1);
 	/* Enable the interrupt on SW7. */
-	PORTC_PCR10 = PORT_PCR10_MUX( 1 ) | PORT_PCR10_IRQC( 0xA ) | PORT_PCR10_PE_MASK | PORT_PCR10_PS_MASK;
+	PORTC->PCR[10] = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
 	enable_irq( mainGPIO_C_VECTOR );
 
 	/* The interrupt calls an interrupt safe API function - so its priority must
@@ -277,18 +279,18 @@ static void prvSetupHardware( void )
 
 	/* Set PTB2, PTB3, PTC14, and PTC15 (connected to LED's) for GPIO
 	functionality. */
-	PORTB_PCR2  = ( 0 | PORT_PCR2_MUX( 1 ) );
-	PORTB_PCR3  = ( 0 | PORT_PCR3_MUX( 1 ) );
-	PORTC_PCR14 = ( 0 | PORT_PCR14_MUX( 1 ) );
-	PORTC_PCR15 = ( 0 | PORT_PCR15_MUX( 1 ) );
+	PORTB->PCR[2]  = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTB->PCR[3]  = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTC->PCR[14] = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTC->PCR[15] = ( 0 | PORT_PCR_MUX( 1 ) );
 
 	/* Change PTB2, PTC15 to outputs. */
-	GPIOB_PDDR = GPIO_PDDR_PDD( mainTASK_CONTROLLED_LED );
-	GPIOC_PDDR = GPIO_PDDR_PDD( mainTIMER_CONTROLLED_LED );
+	PTB->PDDR = GPIO_PDDR_PDD( mainTASK_CONTROLLED_LED );
+	PTC->PDDR = GPIO_PDDR_PDD( mainTIMER_CONTROLLED_LED );
 
 	/* Start with LEDs off. */
-	GPIOB_PTOR = ~0U;
-	GPIOC_PTOR = ~0U;
+	PTB->PTOR = ~0U;
+	PTC->PTOR = ~0U;
 }
 /*-----------------------------------------------------------*/
 
