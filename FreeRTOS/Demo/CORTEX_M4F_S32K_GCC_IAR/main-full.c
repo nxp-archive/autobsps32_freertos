@@ -382,7 +382,7 @@ void vPort_C_ISRHandler( void )
 	xTimerResetFromISR( xLEDButtonTimer, &xHigherPriorityTaskWoken );
 
 	/* Clear the interrupt before leaving.  */
-	PORTC_ISFR = 0xFFFFFFFFUL;
+	PORTC->ISFR = 0xFFFFFFFFUL;
 
 	/* If calling xTimerResetFromISR() caused a task (in this case the timer
 	service/daemon task) to unblock, and the unblocked task has a priority
@@ -395,9 +395,11 @@ void vPort_C_ISRHandler( void )
 
 static void prvSetupHardware( void )
 {
+    PCC->PCCn[PCC_PORTB_INDEX] = PCC_PCCn_CGC(1);
+    PCC->PCCn[PCC_PORTC_INDEX] = PCC_PCCn_CGC(1);
 	/* Enable the interrupt on SW7. */
 	taskDISABLE_INTERRUPTS();
-	PORTC_PCR10 = PORT_PCR10_MUX( 1 ) | PORT_PCR10_IRQC( 0xA ) | PORT_PCR10_PE_MASK | PORT_PCR10_PS_MASK;
+	PORTC->PCR[10] = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
 	enable_irq( mainGPIO_C_VECTOR );
 
 	/* The interrupt calls an interrupt safe API function - so its priority must
