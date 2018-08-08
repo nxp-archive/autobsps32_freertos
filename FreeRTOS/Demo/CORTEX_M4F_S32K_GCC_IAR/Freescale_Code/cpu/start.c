@@ -1,4 +1,7 @@
 /*
+ *
+ * Copyright 2018 NXP
+ *
  * File:	start.c
  * Purpose:	Kinetis start up routines.
  *
@@ -8,7 +11,6 @@
 #include "start.h"
 #include "common.h"
 #include "wdog.h"
-#include "sysinit.h"
 
 /********************************************************************/
 /*!
@@ -25,9 +27,6 @@ void start(void)
 
 	/* Copy any vector or data sections that need to be in RAM */
 	common_startup();
-
-	/* Perform processor initialization */
-	sysinit();
 
 	/* Jump to main process */
 	main();
