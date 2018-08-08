@@ -21,5 +21,7 @@
 void wdog_disable(void)
 {
 	WDOG->CS &= ~WDOG_CS_EN_MASK;
+    /* Configure timeout */
+    WDOG->TOVAL = (uint32_t )0xFFFF;
 }
 /********************************************************************/

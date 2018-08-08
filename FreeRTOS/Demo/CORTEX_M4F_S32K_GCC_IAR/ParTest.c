@@ -51,18 +51,18 @@ void vParTestInitialise( void )
 {
 	/* Set PTB2, PTB3, PTC14, and PTC15 (connected to LED's) for GPIO
 	functionality. */
-	PORTB_PCR2 = ( 0 | PORT_PCR2_MUX( 1 ) );
-	PORTB_PCR3 = ( 0 | PORT_PCR3_MUX( 1 ) );
-	PORTC_PCR14 = ( 0 | PORT_PCR14_MUX( 1 ) );
-	PORTC_PCR15 = ( 0 | PORT_PCR15_MUX( 1 ) );
+	PORTB->PCR[2] = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTB->PCR[3] = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTC->PCR[14] = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTC->PCR[15] = ( 0 | PORT_PCR_MUX( 1 ) );
 
 	/* Change PTB2, PTB3, PTC14, and PTC15 to outputs. */
-	GPIOB_PDDR=GPIO_PDDR_PDD( ulLEDs[ 0 ] | ulLEDs[ 1 ] );
-	GPIOC_PDDR=GPIO_PDDR_PDD( ulLEDs[ 2 ] | ulLEDs[ 3 ] );
+	PTB->PDDR = GPIO_PDDR_PDD( ulLEDs[ 0 ] | ulLEDs[ 1 ] );
+	PTC->PDDR = GPIO_PDDR_PDD( ulLEDs[ 2 ] | ulLEDs[ 3 ] );
 
 	/* Start with LEDs off. */
-	GPIOB_PTOR = ~0U;
-	GPIOC_PTOR = ~0U;
+	PTB->PTOR = ~0U;
+	PTC->PTOR = ~0U;
 }
 /*-----------------------------------------------------------*/
 
@@ -73,16 +73,16 @@ void vParTestSetLED( unsigned long ulLED, signed portBASE_TYPE xValue )
 		if( xValue == pdTRUE )
 		{
 			if ( ulLED == 0 || ulLED == 1 )
-				GPIOB_PCOR = ulLEDs[ ulLED ];
+				PTB->PCOR = ulLEDs[ ulLED ];
 			else
-				GPIOC_PCOR = ulLEDs[ ulLED ];
+				PTC->PCOR = ulLEDs[ ulLED ];
 		}
 		else
 		{
 			if ( ulLED == 0 || ulLED == 1 )
-				GPIOB_PSOR = ulLEDs[ ulLED ];
+				PTB->PSOR = ulLEDs[ ulLED ];
 			else
-				GPIOC_PSOR = ulLEDs[ ulLED ];
+				PTC->PSOR = ulLEDs[ ulLED ];
 		}
 	}
 }
@@ -93,9 +93,9 @@ void vParTestToggleLED( unsigned long ulLED )
 	if( ulLED < partstMAX_LEDS )
 	{
 		if ( ulLED == 0 || ulLED == 1 )
-			GPIOB_PTOR = ulLEDs[ ulLED ];
+			PTB->PTOR = ulLEDs[ ulLED ];
 		else
-			GPIOC_PTOR = ulLEDs[ ulLED ];
+			PTC->PTOR = ulLEDs[ ulLED ];
 	}
 }
 /*-----------------------------------------------------------*/
@@ -107,9 +107,9 @@ long lReturn = pdFALSE;
 	if( ulLED < partstMAX_LEDS )
 	{
 		if ( ulLED == 0 || ulLED == 1 )
-			lReturn = GPIOB_PDOR & ulLEDs[ ulLED ];
+			lReturn = PTB->PDOR & ulLEDs[ ulLED ];
 		else
-			lReturn = GPIOC_PDOR & ulLEDs[ ulLED ];
+			lReturn = PTC->PDOR & ulLEDs[ ulLED ];
 
 		if( lReturn == 0 )
 		{
