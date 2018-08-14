@@ -5,15 +5,15 @@
 TEST_NAME := DEMO
 
 #force dynamic test
-
-include ../SOURCES_HARDWARE/platform.mk
-include ../SOURCES_BOOT/boot.mk
 include ../compiler_options.mk
+include ../generic/src/src.mk
+include ../specific/$(PLATFORM)/src_boot/boot.mk
+include ../specific/$(PLATFORM)/src_hw/hw.mk
 include ../freeRTOS.mk
 
 
 # test generic files
-OBJFILES := $(OBJFILES_OS) $(OBJFILES_PLATFORM) $(OBJFILES_BOOT) $(OBJFILES_APPL) $(OBJFILES_HEAP)
+OBJFILES := $(OBJFILES_OS) $(OBJFILES_GENERIC) $(OBJFILES_SPECIFIC) $(OBJFILES_APPL) $(OBJFILES_HEAP)
 
 # test specific files
 OBJFILES +=  $(OUT_ROOT)/obj/$(TEST_NAME)/main.o

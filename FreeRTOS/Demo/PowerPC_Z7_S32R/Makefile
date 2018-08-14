@@ -62,4 +62,4 @@ OUT_DIR_CREATE:
 
 DEMO: OUT_DIR_CREATE
 	mkdir -p $(OUT_ROOT)/obj/DEMO
-	make -C SOURCES
+	make -C src_demo
