@@ -11,6 +11,12 @@
     #define INTC_EOIR_PRC_ADDR_BASE                 0xFC040030
     #define INTC_IACKR_INTVEC_BITWIDTH_NUM_BASE     10
     #define INTC_OFFSET_NUM                            2
+#elif defined(CPU_MPC5777C)
+    #define INTC_CPR_ADDR_BASE                      0xFFF48008
+    #define INTC_IACKR_PRC_ADDR_BASE                0xFFF48010
+    #define INTC_EOIR_PRC_ADDR_BASE                 0xFFF48018
+    #define INTC_IACKR_INTVEC_BITWIDTH_NUM_BASE     10
+    #define INTC_OFFSET_NUM                            2
 #else
     #error not define platform
 #endif
