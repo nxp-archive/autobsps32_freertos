@@ -1,0 +1,47 @@
+;
+; Copyright 2018 NXP
+;
+
+
+;=== elf-file for debugging ===
+&filename="../../../OUT/DEMO"
+&optimizePLL=0
+
+;set titles
+Title "Run Cobra 55 Demo blink led"
+
+;set equal paths
+&pwd=os.pwd()
+
+;=========================================================================
+; System settings
+;=========================================================================
+; CPU setup
+SYStem.RESet
+SYStem.BdmClock 3.0MHz
+SYStem.DETECT.CPU
+SYStem.Option.WATCHDOG OFF
+SYStem.Up
+
+;switch to HLL mode debugging
+MODE.HLL
+
+wait 500ms
+
+;initialize internal SRAM.
+Data.Set EA:0x40000000--0x4007FFFF %quad 0x0
+
+DO flash.cmm &filename
+
+;display source
+Data.List
+
+;clear all breakpoints
+Break.delete /ALL
+r /sl
+v.w ui32_ms_cnt ui32_vLedTask0 ui32_vLedTask1 ui32_vLedTask2
+
+ENDDO
+
+
+
