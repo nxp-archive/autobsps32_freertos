@@ -16,7 +16,7 @@ extern "C"
     /***** Clocks *****/
     /* Reset generation module */
     #define HWRGM_FES       HWREG32(HWRGM_BASE_ADDR + HWRGM_FES_OFFSET)            /* Functional Event Status */
-
+    #define CGM_AC_SC_0 HWREG32(HWGCM_BASE_ADDR + CGM_AC_SC_0_OFFSET)    /* Choose clock source for peripheral clock (CGM_AC_DC0) */
     #define CGM_SC_DC0_3    HWREG32(HWGCM_BASE_ADDR + CGM_SC_DC0_3_OFFSET)  /* System Clock Divider Configuration Registers (CGM_SC_DC0:3) */
     #define MC_ME_GS        HWREG32(HWME_BASE_ADDR)             /* Global Status Register */
     #define MC_ME_RUN_PC    HWREG32(HWME_BASE_ADDR + ME_RUN_PC_OFFSET)     /* Run Peripheral Configuration Registers MC_ME_RUN_PC0 */
@@ -32,6 +32,7 @@ extern "C"
     {                                                                              \
         HWRGM_FES = HWRGM_FES_DEFAULT; \
         CGM_SC_DC0_3 = CGM_SC_DC0_3_DEFAULT; \
+        CGM_AC_SC_0 = CGM_AC_SC_0_DEFAULT;               /* Set configuration, Peripheral clock use clock from IRCOSC */ \
         MC_ME_RUN_PC = ME_RUN_PC_DEFAULT;          /* Set configuration,peripheral ON in every mode */ \
         MC_ME_MCTL = ME_MCTL_KEY_DEFAULT;            /* Re-enter in DRUN mode to update with control key */ \
         MC_ME_MCTL = ME_MCTL_INVERTED_KEY_DEFAULT;            /* --//-- with inverted control key */ \
