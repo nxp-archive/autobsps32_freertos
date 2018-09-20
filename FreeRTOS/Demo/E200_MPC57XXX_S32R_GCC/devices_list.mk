@@ -9,4 +9,4 @@ ifeq ($(filter $(MCU),$(mcu_list)),)
     $(error Undefined MCU: '$(MCU)', use one from: $(mcu_list))
 endif
 
-include SOURCES_HARDWARE/$(MCU)/core_config.mk
+include specific/$(MCU)/src_hw/core_config.mk

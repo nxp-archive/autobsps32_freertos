@@ -6,8 +6,8 @@ TEST_NAME := DEMO
 
 #force dynamic test
 
-include ../SOURCES_HARDWARE/platform.mk
-include ../SOURCES_BOOT/boot.mk
+include ../specific/$(MCU)/src_hw/platform.mk
+include ../specific/$(MCU)/src_boot/boot.mk
 include ../compiler_options.mk
 include ../freeRTOS.mk
 

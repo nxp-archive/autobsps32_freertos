@@ -56,7 +56,7 @@ export CRT_DIR
 export CYGPATH
 
 
-START_BAT_PATH := T32_$(MCU)/startup.bat
+START_BAT_PATH := specific/$(MCU)/t32/startup.bat
 
 all: OUT_DIR_CREATE DEMO
 
@@ -81,7 +81,7 @@ OUT_DIR_CREATE:
 
 DEMO: OUT_DIR_CREATE START_BAT_FILE
 	mkdir -p $(OUT_ROOT)/obj/DEMO
-	make -C SOURCES
+	make -C src_demo
 
 START_BAT_FILE:
 	@echo "REM" > $(START_BAT_PATH)
