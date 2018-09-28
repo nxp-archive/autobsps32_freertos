@@ -57,7 +57,7 @@ extern "C" {
 #define portBASE_TYPE        portLONG
 
 #ifndef configASSERT
-    #define configASSERT(a)			{ if (!(a)) { while (1) {} } }
+    #define configASSERT(a)         { if (!(a)) { while (1) {} } }
 #endif
 
 typedef portSTACK_TYPE StackType_t;
@@ -105,7 +105,7 @@ enum portSYSCALL_e
 
 void vPortTickISR( void );
 
-//lint -emacro( {717}, portYIELD_FROM_ISR )
+/* lint -emacro( {717}, portYIELD_FROM_ISR ) */
 #define portYIELD_FROM_ISR(x)   do                                                                          \
                                 {                                                                           \
                                     if ( (x) == pdTRUE )                                                    \
@@ -115,7 +115,8 @@ void vPortTickISR( void );
                                         vPortUnmaskInterrupts(uxSavedInterruptStatus);                      \
                                     }                                                                       \
                                 }                                                                           \
-                                while (0) //lint -e9036 "Conditional expression should have essentially Boolean type"
+                                while (0)
+/* lint -e9036 "Conditional expression should have essentially Boolean type" */
 
 /*-----------------------------------------------------------*/
 
@@ -144,7 +145,7 @@ void vPortTaskExitCritical(void);
 /*-----------------------------------------------------------*/
 
 #ifndef portFORCE_INLINE
-	#define portFORCE_INLINE inline __attribute__(( always_inline ))
+    #define portFORCE_INLINE inline __attribute__(( always_inline ))
 #endif
 
 /* Architecture specific optimizations. */
@@ -163,11 +164,11 @@ void vPortTaskExitCritical(void);
     {
         uint32_t ucReturn;
 
-        // cntlzw Count Leading Zeros Word
-        // A count of the number of consecutive zero bits starting
-        // at bit 32 of register RS is placed into register RA.
-        // This number ranges from 0 to 32, inclusive.
-        // 1 clock latency, 1 clock cycle per MPC5746C Reference Manual section 60.4 Table 60-1
+        /* cntlzw Count Leading Zeros Word
+           A count of the number of consecutive zero bits starting
+           at bit 32 of register RS is placed into register RA.
+           This number ranges from 0 to 32, inclusive. 1 clock latency,1 clock
+           cycle per MPC5746C Reference Manual section 60.4 Table 60-1 */
         __asm__ volatile ("cntlzw %0, %1" : "=r" (ucReturn) : "r" (ulBitmap));
 
         return ucReturn;
@@ -186,21 +187,25 @@ void vPortTaskExitCritical(void);
 
     #define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities ) uxTopPriority = ( 31UL - ucPortCountLeadingZeros( ( uxReadyPriorities ) ) )
 
-#endif /* configUSE_PORT_OPTIMISED_TASK_SELECTION */
+/* configUSE_PORT_OPTIMISED_TASK_SELECTION */
+
+#endif
 
 static portFORCE_INLINE void vPortMaskInterrupts( void )
 {
     BaseType_t msr;
     uint32_t core_ID;
     portGetSPR(core_ID,286);
-    // See MPC5746C RM Rev 3   section 21.8.5.2  "Ensuring coherency" (most restrictive rules)
-    // See MPC5646C RM Rev 5   section 19.10.4.2 "Ensuring coherency"
-    // See MPC5607B RM Rev 7.2 section 18.7.5.2  "Ensuring coherency"
-    // See MPC5604B RM Rev 8.2 section 16.7.5.2  "Ensuring coherency"
+    /* See MPC5746C RM Rev 3   section 21.8.5.2  "Ensuring coherency"
+       (most restrictive rules)
+       See MPC5646C RM Rev 5   section 19.10.4.2 "Ensuring coherency"
+       See MPC5607B RM Rev 7.2 section 18.7.5.2  "Ensuring coherency"
+       See MPC5604B RM Rev 8.2 section 16.7.5.2  "Ensuring coherency" */
     __asm__ volatile
     (
         "mfmsr  %0 \n\t"
-        "wrteei  0 \n\t" // disable interrupts
+        /* disable interrupts */
+        "wrteei  0 \n\t"
         : "=r" (msr)
     );
 
@@ -209,9 +214,12 @@ static portFORCE_INLINE void vPortMaskInterrupts( void )
 
     __asm__ volatile
     (
-        "mbar     \n\t" // ensure INTC_CPR write completes before re-enabling interrupts
-        "wrtee %0 \n\t" // re-enable interrupts if they were previously enabled
-        "se_isync \n\t" // re-fetch Processor pipeline
+        /* ensure INTC_CPR write completes before re-enabling interrupts */
+        "mbar     \n\t"
+        /* re-enable interrupts if they were previously enabled */
+        "wrtee %0 \n\t"
+        /* re-fetch Processor pipeline */
+        "se_isync \n\t"
         : : "r" (msr)
     );
 }
@@ -232,24 +240,29 @@ static portFORCE_INLINE void vPortUnmaskInterrupts( UBaseType_t priority )
     BaseType_t msr;
     uint32_t core_ID;
     portGetSPR(core_ID,286);
-    // See MPC5746C RM Rev 3   section 21.8.5.2  "Ensuring coherency" (most restrictive rules)
-    // See MPC5646C RM Rev 5   section 19.10.4.2 "Ensuring coherency"
-    // See MPC5607B RM Rev 7.2 section 18.7.5.2  "Ensuring coherency"
-    // See MPC5604B RM Rev 8.2 section 16.7.5.2  "Ensuring coherency"
+    /* See MPC5746C RM Rev 3   section 21.8.5.2  "Ensuring coherency"
+       (most restrictive rules)
+       See MPC5646C RM Rev 5   section 19.10.4.2 "Ensuring coherency"
+       See MPC5607B RM Rev 7.2 section 18.7.5.2  "Ensuring coherency"
+       See MPC5604B RM Rev 8.2 section 16.7.5.2  "Ensuring coherency" */
     __asm__ volatile
     (
-        "mbar      \n\t" // flush out writes from store buffer
+        /* flush out writes from store buffer */
+        "mbar      \n\t"
         "mfmsr  %0 \n\t"
-        "wrteei  0 \n\t" // disable interrupts
+        /* disable interrupts */
+        "wrteei  0 \n\t"
         : "=r" (msr)
     );
 
-    // Restore current interrupt priority
+    /* Restore current interrupt priority */
     portINTC_CPR(core_ID) = priority;
 
     __asm__ volatile
     (
-        "wrtee %0 \n\t" // re-enable interrupts if they were previously enabled. no mbar needed: OK if INTC_CPR write takes a few cycles to show up.
+        /* re-enable interrupts if they were previously enabled. no mbar needed:
+           OK if INTC_CPR write takes a few cycles to show up. */
+        "wrtee %0 \n\t"
         : : "r" (msr)
     );
 }
@@ -273,9 +286,12 @@ static portFORCE_INLINE void portINCREMENT_CRITICAL_NESTING( void )
     /* Increment critical nesting count */
     __asm__ volatile
     (
-        "mfsprg  %0, 1  \n\t" // get critical nesting count from SPRG1
-        "se_addi %0, 1  \n\t" // increment
-        "mtsprg   1, %0 \n\t" // store to SPRG1
+        /* get critical nesting count from SPRG1 */
+        "mfsprg  %0, 1  \n\t"
+        /* increment */
+        "se_addi %0, 1  \n\t"
+        /* store to SPRG1 */
+        "mtsprg   1, %0 \n\t"
         : "=kregs" (ulCriticalNesting)
     );
     /* ignore warning ulCriticalNesting was set but never used*/
@@ -289,9 +305,12 @@ static portFORCE_INLINE UBaseType_t portDECREMENT_CRITICAL_NESTING( void )
     /* Decrement critical nesting count */
     __asm__ volatile
     (
-        "mfsprg   %0, 1  \n\t" // get critical nesting count from SPRG1
-        "se_subi  %0, 1  \n\t" // decrement
-        "mtsprg    1, %0 \n\t" // store to SPRG1
+        /* get critical nesting count from SPRG1 */
+        "mfsprg   %0, 1  \n\t"
+        /* decrement */
+        "se_subi  %0, 1  \n\t"
+        /* store to SPRG1 */
+        "mtsprg    1, %0 \n\t"
         : "=kregs" (ulCriticalNesting)
     );
 
@@ -321,8 +340,9 @@ static portFORCE_INLINE void vPortResetPrivilege( const BaseType_t xRunningPrivi
  */
 static portFORCE_INLINE BaseType_t xPortRaisePrivilege( void )
 {
-    // syscalls are context synchronizing on se_sc entry and rfi exit
-    // no need for explicit context synchronization after changing privilege in handler.
+    /* syscalls are context synchronizing on se_sc entry and rfi exit
+       no need for explicit context synchronization after changing
+       privilege in handler. */
     return xPortSyscall( portSYSCALL_RAISE_PRIVILEGE );
 }
 
@@ -330,5 +350,5 @@ static portFORCE_INLINE BaseType_t xPortRaisePrivilege( void )
 }
 #endif
 
-#endif /* PORTMACRO_H */
 
+#endif /* PORTMACRO_H */
