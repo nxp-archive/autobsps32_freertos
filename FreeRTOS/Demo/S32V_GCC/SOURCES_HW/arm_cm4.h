@@ -5,8 +5,8 @@
  * Notes:
  */
 
-#ifndef _CPU_ARM_CM4_H
-#define _CPU_ARM_CM4_H
+#ifndef CPU_ARM_CM4_H
+#define CPU_ARM_CM4_H
 
 #include "common.h"
 
@@ -87,4 +87,4 @@ int main( void );
 #endif
 
 /***********************************************************************/
-#endif	/* _CPU_ARM_CM4_H */
+#endif	/* CPU_ARM_CM4_H */
