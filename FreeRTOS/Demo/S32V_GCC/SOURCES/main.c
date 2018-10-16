@@ -76,266 +76,121 @@
  * being pressed.
  */
 
+
+
+#include <stdio.h>
+
 /* Kernel includes. */
 #include "FreeRTOS.h"
 #include "task.h"
-#include "queue.h"
-#include "timers.h"
+
 
 /* Freescale includes. */
 #include "common.h"
 
-/* Priorities at which the tasks are created. */
-#define mainQUEUE_RECEIVE_TASK_PRIORITY		( tskIDLE_PRIORITY + 2 )
-#define	mainQUEUE_SEND_TASK_PRIORITY		( tskIDLE_PRIORITY + 1 )
 
-/* The rate at which data is sent to the queue, specified in milliseconds, and
-converted to ticks using the portTICK_PERIOD_MS constant. */
-#define mainQUEUE_SEND_FREQUENCY_MS			( 200 / portTICK_PERIOD_MS )
+#define LED0                        24U
 
-/* The LED will remain on until the button has not been pushed for a full
-5000ms. */
-#define mainBUTTON_LED_TIMER_PERIOD_MS		( 5000UL / portTICK_PERIOD_MS )
 
-/* The number of items the queue can hold.  This is 1 as the receive task
-will remove items as they are added, meaning the send task should always find
-the queue empty. */
-#define mainQUEUE_LENGTH					( 1 )
+void vLedTask0( void *pvParameters );
 
-/* The LED toggle by the queue receive task (blue). */
-#define mainTASK_CONTROLLED_LED				( 1UL << 2UL )
+#if configUSE_TICK_HOOK > 0
 
-/* The LED turned on by the button interrupt, and turned off by the LED timer
-(green). */
-#define mainTIMER_CONTROLLED_LED			( 1UL << 15UL )
+void vApplicationTickHook(void);
 
-/* The vector used by the GPIO port C.  Button SW7 is configured to generate
-an interrupt on this port. */
-#define mainGPIO_C_VECTOR					( 61 )
-
-/* A block time of zero simply means "don't block". */
-#define mainDONT_BLOCK						( 0UL )
-
-/*-----------------------------------------------------------*/
 
 /*
- * Setup the NVIC, LED outputs, and button inputs.
+ * Setup the GPIO output.
  */
 static void prvSetupHardware( void );
-
 /*
- * The tasks as described in the comments at the top of this file.
- */
-static void prvQueueReceiveTask( void *pvParameters );
-static void prvQueueSendTask( void *pvParameters );
+* Global variable
+*/
+volatile uint32_t ui32_ms_cnt = 0;
+volatile uint32_t ui32_vLedTask0 = 0;
+volatile unsigned int IdleHook_Tick = 0;
+volatile unsigned int AppHook_Tick = 0;
 
-/*
- * The LED timer callback function.  This does nothing but switch off the
- * LED defined by the mainTIMER_CONTROLLED_LED constant.
- */
-static void prvButtonLEDTimerCallback( TimerHandle_t xTimer );
+uint32_t led0_deylay = (1000/portTICK_PERIOD_MS);
 
-/*-----------------------------------------------------------*/
-
-/* The queue used by both tasks. */
-static QueueHandle_t xQueue = NULL;
-
-/* The LED software timer.  This uses prvButtonLEDTimerCallback() as its callback
-function. */
-static TimerHandle_t xButtonLEDTimer = NULL;
-
-/*-----------------------------------------------------------*/
-
-void main( void )
+void vApplicationTickHook(void)
 {
-	/* Configure the NVIC, LED outputs and button inputs. */
-	prvSetupHardware();
 
-	/* Create the queue. */
-	xQueue = xQueueCreate( mainQUEUE_LENGTH, sizeof( unsigned long ) );
-
-	if( xQueue != NULL )
-	{
-		/* Start the two tasks as described in the comments at the top of this
-		file. */
-		xTaskCreate( prvQueueReceiveTask, "Rx", configMINIMAL_STACK_SIZE, NULL, mainQUEUE_RECEIVE_TASK_PRIORITY, NULL );
-		xTaskCreate( prvQueueSendTask, "TX", configMINIMAL_STACK_SIZE, NULL, mainQUEUE_SEND_TASK_PRIORITY, NULL );
-
-		/* Create the software timer that is responsible for turning off the LED
-		if the button is not pushed within 5000ms, as described at the top of
-		this file. */
-		xButtonLEDTimer = xTimerCreate( "ButtonLEDTimer", 			/* A text name, purely to help debugging. */
-									mainBUTTON_LED_TIMER_PERIOD_MS,	/* The timer period, in this case 5000ms (5s). */
-									pdFALSE,						/* This is a one shot timer, so xAutoReload is set to pdFALSE. */
-									( void * ) 0,					/* The ID is not used, so can be set to anything. */
-									prvButtonLEDTimerCallback		/* The callback function that switches the LED off. */
-								);
-
-		/* Start the tasks and timer running. */
-		vTaskStartScheduler();
-	}
-
-	/* If all is well, the scheduler will now be running, and the following line
-	will never be reached.  If the following line does execute, then there was
-	insufficient FreeRTOS heap memory available for the idle and/or timer tasks
-	to be created.  See the memory management section on the FreeRTOS web site
-	for more details. */
-	for( ;; );
+        // increments every 1ms if configCPU_CLOCK_HZ is set correctly
+        ui32_ms_cnt++;
 }
-/*-----------------------------------------------------------*/
 
-static void prvButtonLEDTimerCallback( TimerHandle_t xTimer )
+#endif
+
+void vLedTask0( void *pvParameters )
 {
-	/* The timer has expired - so no button pushes have occurred in the last
-	five seconds - turn the LED off. */
-	PTC->PSOR = mainTIMER_CONTROLLED_LED;
+    unsigned int ID = (unsigned int)pvParameters;
+    while(1)
+    {
+        ui32_vLedTask0++;
+        vTaskDelay(led0_deylay);
+        REG_WRITE32(SIUL2_GPDOn( 9 ), 0 << ID);
+        vTaskDelay(led0_deylay);
+        REG_WRITE32(SIUL2_GPDOn( 9 ), 1 << ID);
+    }
 }
-/*-----------------------------------------------------------*/
-
-/* The ISR executed when the user button is pushed. */
-void vPort_C_ISRHandler( void )
+/* main function*/
+int main( void )
 {
-portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
+    /* Configure the NVIC, LED outputs and button inputs. */
+    prvSetupHardware();
 
-	/* The button was pushed, so ensure the LED is on before resetting the
-	LED timer.  The LED timer will turn the LED off if the button is not
-	pushed within 5000ms. */
-	PTC->PCOR = mainTIMER_CONTROLLED_LED;
+    xTaskCreate( vLedTask0, ( const char * const ) "LedTask", configMINIMAL_STACK_SIZE, (void*)LED0, tskIDLE_PRIORITY + 1, NULL );
 
-	/* This interrupt safe FreeRTOS function can be called from this interrupt
-	because the interrupt priority is below the
-	configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY setting in FreeRTOSConfig.h. */
-	xTimerResetFromISR( xButtonLEDTimer, &xHigherPriorityTaskWoken );
-
-	/* Clear the interrupt before leaving. */
-	PORTC->ISFR = 0xFFFFFFFFUL;
-
-	/* If calling xTimerResetFromISR() caused a task (in this case the timer
-	service/daemon task) to unblock, and the unblocked task has a priority
-	higher than or equal to the task that was interrupted, then
-	xHigherPriorityTaskWoken will now be set to pdTRUE, and calling
-	portEND_SWITCHING_ISR() will ensure the unblocked task runs next. */
-	portEND_SWITCHING_ISR( xHigherPriorityTaskWoken );
+    /* Start the scheduler. */
+    vTaskStartScheduler();
+    // Will only get here if there was insufficient memory to create the idle
+    // task.
+    for( ;; );
 }
-/*-----------------------------------------------------------*/
-
-static void prvQueueSendTask( void *pvParameters )
-{
-TickType_t xNextWakeTime;
-const unsigned long ulValueToSend = 100UL;
-
-	/* Initialise xNextWakeTime - this only needs to be done once. */
-	xNextWakeTime = xTaskGetTickCount();
-
-	for( ;; )
-	{
-		/* Place this task in the blocked state until it is time to run again.
-		The block time is specified in ticks, the constant used converts ticks
-		to ms.  While in the Blocked state this task will not consume any CPU
-		time. */
-		vTaskDelayUntil( &xNextWakeTime, mainQUEUE_SEND_FREQUENCY_MS );
-
-		/* Send to the queue - causing the queue receive task to unblock and
-		toggle an LED.  0 is used as the block time so the sending operation
-		will not block - it shouldn't need to block as the queue should always
-		be empty at this point in the code. */
-		xQueueSend( xQueue, &ulValueToSend, mainDONT_BLOCK );
-	}
-}
-/*-----------------------------------------------------------*/
-
-static void prvQueueReceiveTask( void *pvParameters )
-{
-unsigned long ulReceivedValue;
-
-	for( ;; )
-	{
-		/* Wait until something arrives in the queue - this task will block
-		indefinitely provided INCLUDE_vTaskSuspend is set to 1 in
-		FreeRTOSConfig.h. */
-		xQueueReceive( xQueue, &ulReceivedValue, portMAX_DELAY );
-
-		/*  To get here something must have been received from the queue, but
-		is it the expected value?  If it is, toggle the LED. */
-		if( ulReceivedValue == 100UL )
-		{
-		    PTB->PTOR = mainTASK_CONTROLLED_LED;
-		}
-	}
-}
-/*-----------------------------------------------------------*/
 
 static void prvSetupHardware( void )
 {
-    PCC->PCCn[PCC_PORTB_INDEX] = PCC_PCCn_CGC(1);
-    PCC->PCCn[PCC_PORTC_INDEX] = PCC_PCCn_CGC(1);
-	/* Enable the interrupt on SW7. */
-	PORTC->PCR[10] = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
-	enable_irq( mainGPIO_C_VECTOR );
-
-	/* The interrupt calls an interrupt safe API function - so its priority must
-	be equal to or lower than configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY. */
-	set_irq_priority( mainGPIO_C_VECTOR, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
-
-	/* Set PTB2, PTB3, PTC14, and PTC15 (connected to LED's) for GPIO
-	functionality. */
-	PORTB->PCR[2]  = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTB->PCR[3]  = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTC->PCR[14] = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTC->PCR[15] = ( 0 | PORT_PCR_MUX( 1 ) );
-
-	/* Change PTB2, PTC15 to outputs. */
-	PTB->PDDR = GPIO_PDDR_PDD( mainTASK_CONTROLLED_LED );
-	PTC->PDDR = GPIO_PDDR_PDD( mainTIMER_CONTROLLED_LED );
-
-	/* Start with LEDs off. */
-	PTB->PTOR = ~0U;
-	PTC->PTOR = ~0U;
+    REG_WRITE32(SIUL2_MSCRn(36), SIUL2_MSCR_MUX_MODE(0) | \
+                                 SIUL2_MSCR_OBE_EN | \
+                                 SIUL2_MSCR_IBE_EN | \
+                                 SIUL2_MSCR_DSE_34ohm);
+    REG_WRITE32(SIUL2_GPDOn(9), 1 << 24);
 }
-/*-----------------------------------------------------------*/
+
 
 void vApplicationMallocFailedHook( void )
 {
-	/* Called if a call to pvPortMalloc() fails because there is insufficient
-	free memory available in the FreeRTOS heap.  pvPortMalloc() is called
-	internally by FreeRTOS API functions that create tasks, queues, software
-	timers, and semaphores.  The size of the FreeRTOS heap is set by the
-	configTOTAL_HEAP_SIZE configuration constant in FreeRTOSConfig.h. */
-	taskDISABLE_INTERRUPTS();
-	for( ;; );
+    /* Called if a call to pvPortMalloc() fails because there is insufficient
+    free memory available in the FreeRTOS heap.  pvPortMalloc() is called
+    internally by FreeRTOS API functions that create tasks, queues, software
+    timers, and semaphores.  The size of the FreeRTOS heap is set by the
+    configTOTAL_HEAP_SIZE configuration constant in FreeRTOSConfig.h. */
+    taskDISABLE_INTERRUPTS();
+    for( ;; );
 }
 /*-----------------------------------------------------------*/
 
 void vApplicationStackOverflowHook( TaskHandle_t pxTask, char *pcTaskName )
 {
-	( void ) pcTaskName;
-	( void ) pxTask;
+    ( void ) pcTaskName;
+    ( void ) pxTask;
 
-	/* Run time stack overflow checking is performed if
-	configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
-	function is called if a stack overflow is detected. */
-	taskDISABLE_INTERRUPTS();
-	for( ;; );
+    /* Run time stack overflow checking is performed if
+    configCHECK_FOR_STACK_OVERFLOW is defined to 1 or 2.  This hook
+    function is called if a stack overflow is detected. */
+    taskDISABLE_INTERRUPTS();
+    for( ;; );
 }
 /*-----------------------------------------------------------*/
 
 void vApplicationIdleHook( void )
 {
-volatile size_t xFreeHeapSpace;
+    IdleHook_Tick++;
 
-	/* This function is called on each cycle of the idle task.  In this case it
-	does nothing useful, other than report the amount of FreeRTOS heap that
-	remains unallocated. */
-	xFreeHeapSpace = xPortGetFreeHeapSize();
-
-	if( xFreeHeapSpace > 100 )
-	{
-		/* By now, the kernel has allocated everything it is going to, so
-		if there is a lot of heap remaining unallocated then
-		the value of configTOTAL_HEAP_SIZE in FreeRTOSConfig.h can be
-		reduced accordingly. */
-	}
 }
+
+
 /*-----------------------------------------------------------*/
 
 /* The Blinky build configuration does not include run time stats gathering,
@@ -344,11 +199,3 @@ file.  Therefore, dummy run time stats functions need to be defined to keep the
 linker happy. */
 void vMainConfigureTimerForRunTimeStats( void ) {}
 unsigned long ulMainGetRunTimeCounterValue( void ) { return 0UL; }
-
-/* A tick hook is used by the "Full" build configuration.  The Full and blinky
-build configurations share a FreeRTOSConfig.h header file, so this simple build
-configuration also has to define a tick hook - even though it does not actually
-use it for anything. */
-void vApplicationTickHook( void ) {}
-
-/*-----------------------------------------------------------*/
