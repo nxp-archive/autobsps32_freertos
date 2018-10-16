@@ -8,8 +8,8 @@
 *       using.
 ******************************************************************************/
 
-#ifndef __VECTORS_H
-#define __VECTORS_H     1
+#ifndef VECTORS_H
+#define VECTORS_H     1
 
 /* The kernel interrupts - in their CMSIS form. */
 extern void SVC_Handler( void );
@@ -222,6 +222,6 @@ extern void __iar_program_start(void);
 #define VECTOR_190      default_isr
 #define VECTOR_191      default_isr
 
-#endif /*__VECTORS_H*/
+#endif /*VECTORS_H*/
 
 /* End of "vectors.h" */
