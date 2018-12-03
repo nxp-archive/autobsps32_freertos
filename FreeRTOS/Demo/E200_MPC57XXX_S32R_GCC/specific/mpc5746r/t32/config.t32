@@ -1,0 +1,29 @@
+;
+; Copyright 2018 NXP
+;
+
+
+IC=NETASSIST
+PORT=${1}
+
+; Environment variables
+OS=
+ID=T32${1}
+TMP=${5}\temp
+SYS=${5}\
+HELP=${5}\pdf
+
+PBI=
+${3}
+${4}
+
+${6}
+${7}
+; Printer settings
+PRINTER=WINDOWS
+
+
+; Screen fonts
+SCREEN=
+FONT=SMALL
+HEADER=Trace32 ${2}
