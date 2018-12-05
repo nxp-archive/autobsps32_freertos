@@ -6,6 +6,27 @@ extern "C"
 {
 #endif
 
+/* register access */
+#define SYS_REG32(address)      ( *(volatile int   *)(address) ) /**<  32-bit register */
+#define SYS_REG16(address)      ( *(volatile short *)(address) ) /**<  16-bit register */
+#define SYS_REG8(address)       ( *(volatile char  *)(address) ) /**<   8-bit register */
+
+
+#define SWT4_BASE           (0x40200000)
+#define SWT_UNLOCK_SEQ1_U32 (0x0000C520UL)
+#define SWT_UNLOCK_SEQ2_U32 (0x0000D928UL)
+#define SWT_WDG_ENABLED_U32 (0x00000001UL)
+
+typedef struct {
+    unsigned int CR;
+    unsigned int IR;
+    unsigned int TO;
+    unsigned int WN;
+    unsigned int SR;
+    unsigned int KO;
+    unsigned int SK;
+} swt_t;
+
 #define OS_FOR_VDK 1
 
 /* Interrupt Router base address */
@@ -32,10 +53,9 @@ extern "C"
 #define IR_ROUTE_INT(id,cpu)    IR_SPRC(id)=(cpu)       /**< route interrupt to cpu, id=0->111, cpu={0,1} */
 
 
-#define IR_ROUTE_2_CPU0     (1UL)
-#define IR_ROUTE_2_CPU1     (2UL)
-#define IR_ROUTE_2_CPU2     (4UL)
-#define IR_ROUTE_2_CPU3     (8UL)
+#define IR_ROUTE_2_CLUSTER0     (1UL)
+#define IR_ROUTE_2_CLUSTER1     (2UL)
+
 #define IR_ROUTE_NO_INT     (248UL)
 
 /* route all interrupts to selected cpu */

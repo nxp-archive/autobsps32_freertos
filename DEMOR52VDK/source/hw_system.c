@@ -1,5 +1,4 @@
 #include <stdint.h>
-#include "s32gxx_ip.h"
 #include "hw_system.h"
 
 unsigned long SystemCoreClock = 100000000UL;
@@ -16,11 +15,11 @@ void SystemInit(void)
 {
     #if defined(OS_FOR_VDK)
     /* SWT4 is not available in the FPGA thus it can be disabled */
-    volatile swt_t * SWT4 = (volatile swt_t *)0x40200000;
+    volatile swt_t * SWT4 = (volatile swt_t *)SWT4_BASE;
     #endif
 
     /* route all interrupts to cores */
-    IR_ROUTE_ALL_2_CPU( IR_ROUTE_2_CPU3 | IR_ROUTE_2_CPU2 | IR_ROUTE_2_CPU1 | IR_ROUTE_2_CPU0);
+    IR_ROUTE_ALL_2_CPU( IR_ROUTE_2_CLUSTER0 | IR_ROUTE_2_CLUSTER1);
 
     /* Disable SWT_4 - enabled at reset by default */
     #if defined(OS_FOR_VDK)
