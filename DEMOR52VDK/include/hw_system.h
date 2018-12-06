@@ -11,7 +11,6 @@ extern "C"
 #define SYS_REG16(address)      ( *(volatile short *)(address) ) /**<  16-bit register */
 #define SYS_REG8(address)       ( *(volatile char  *)(address) ) /**<   8-bit register */
 
-
 #define SWT4_BASE           (0x40200000)
 #define SWT_UNLOCK_SEQ1_U32 (0x0000C520UL)
 #define SWT_UNLOCK_SEQ2_U32 (0x0000D928UL)
@@ -26,8 +25,6 @@ typedef struct {
     unsigned int KO;
     unsigned int SK;
 } swt_t;
-
-#define OS_FOR_VDK 1
 
 /* Interrupt Router base address */
 #define IR_BASE_ADDR 0x40198000UL
@@ -120,7 +117,7 @@ typedef struct {
 #define OSINTC_D_GROUP_1              (1ul << 1)
 #define OSINTC_GICD_TYPER             (4ul)
 #define OSINTC_GICD_IIDR              (8ul)
-/* base address for this registers decremented with 32-bits in order to accomodate interrupts with id >=32 */
+/* base address for this registers decremented with 32-bits in order to accommodate interrupts with id >=32 */
 #define OSINTC_GICD_IGROUPR1          (0x80ul) /* 1-30, 0x84-0xf8 */
 #define OSINTC_GICD_ISENABLER1        (0x100ul) /* 1-30, 0x104-0x178 */
 #define OSINTC_GICD_ICENABLER1        (0x180ul) /* 1-30, 0x184-0x1f8 */
@@ -143,7 +140,7 @@ typedef struct {
 #define OSINTC_GICD_CIDR1             (0xfff4ul)
 #define OSINTC_GICD_CIDR2             (0xfff8ul)
 #define OSINTC_GICD_CIDR3             (0xfffcul)
-/* redistribuitor offsets */
+/* redistributor offsets */
 /* Table 9-21 Redistributor Registers (GICR) for Control summary */
 #define OSINTC_GICR_CTLR              (0ul)
 #define OSINTC_R_RWP                  (1 << 3)

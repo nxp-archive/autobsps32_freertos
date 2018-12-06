@@ -1,8 +1,18 @@
-CYGPATH := C:/tools/cygwin/bin/cygpath.exe
+
+#compiler flags for specific board
+BOARDFLAG := 
+board := vdk
+ifeq ($(board),vdk)
+BOARDFLAG += -DOS_FOR_VDK 
+endif
+ifeq ($(board),fpga)
+BOARDFLAG += -DOS_FOR_FPGA 
+endif
+CYGPATH ?= C:/tools/cygwin/bin/cygpath.exe
 #Path to Tool Directory
-CrossToolDir := C:/tools/gcc-6.3-arm32-eabi
+CrossToolDir ?= C:/tools/gcc-6.3-arm32-eabi
 #Path to FreeRtos Directory
-OsPath := C:/w/OTC/repos/freertos/FreeRTOSv10.0.1/FreeRTOS
+OsPath ?= C:/w/OTC/repos/freertos/FreeRTOSv10.0.1/FreeRTOS
 OutDir := Output
 
 
@@ -10,7 +20,7 @@ AS := $(CrossToolDir)/bin/arm-none-eabi-as.exe
 CC := $(CrossToolDir)/bin/arm-none-eabi-gcc.exe
 LD := $(CrossToolDir)/bin/arm-none-eabi-ld.exe
 
-OSCFLAGS := -g -O3 -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall -I"$(OsPath)/Source/include" -I"../ARM_CR52_GIC" -I"include"
+OSCFLAGS := -g -O3 -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall -I"$(OsPath)/Source/include" -I"../ARM_CR52_GIC" -I"include" $(BOARDFLAG)
 OSASFLAGS := -g -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard 
 LDFLAGS := -nostartfiles -T image.ld -Wl,-Map=$(OutDir)/image.map -L$(CrossToolDir)/arm-none-eabi/newlib/lib/v8-r/fpv5/hard -lc -L$(CrossToolDir)/lib/gcc/arm-none-eabi/6.3.1/v8-r/fpv5/hard -lgcc
 
@@ -50,10 +60,9 @@ all: clean make_dir $(OutDir)/image.elf
 
 clean:
 	rm -f $(OutDir)/*
-	rm -fr $(OutDir)
 
 make_dir:
-	mkdir $(OutDir)
+	mkdir -p $(OutDir)
 # Linking
 $(OutDir)/image.elf: $(OBJFILES)
 	$(CC) $(LDFLAGS) -o $(shell $(CYGPATH) -m -i $@) $(shell $(CYGPATH) -m -i $(OBJFILES))
