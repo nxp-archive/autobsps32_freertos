@@ -198,6 +198,8 @@ void vPortInterruptDispatcher(void)
 	OSASM(" pop {r1}										\t\n"); /* get prev TCB from IRQ stack */
 	OSASM(" ldr r14, [r14]									\t\n");
 	OSASM(" cmp r14, r1										\t\n"); /* compare crt TCB with previous TCB */
+    OSASM(" addeq r1, r0, #24                               \t\n"); /* unload user stack, no schedule */
+    OSASM(" msreq SP_usr, r1								\t\n"); /* update user stack, no schedule */
 	OSASM(" beq nothingToDo									\t\n");
 	OSASM(" mrc p15, 0, r2, c4, c6, 0						\t\n");
 	OSASM(" mrs r3, spsr									\t\n");
