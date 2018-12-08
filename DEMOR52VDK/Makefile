@@ -1,3 +1,12 @@
+#cluster selection
+CLUSTER := 
+cluster := cluster0
+ifeq ($(cluster),cluster0)
+CLUSTER += -DCLUSTER0
+endif
+ifeq ($(cluster),cluster1)
+CLUSTER += -DCLUSTER1
+endif
 
 #compiler flags for specific board
 BOARDFLAG := 
@@ -20,7 +29,7 @@ AS := $(CrossToolDir)/bin/arm-none-eabi-as.exe
 CC := $(CrossToolDir)/bin/arm-none-eabi-gcc.exe
 LD := $(CrossToolDir)/bin/arm-none-eabi-ld.exe
 
-OSCFLAGS := -g -O3 -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall -I"$(OsPath)/Source/include" -I"../ARM_CR52_GIC" -I"include" $(BOARDFLAG)
+OSCFLAGS := -g -O3 -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall -I"$(OsPath)/Source/include" -I"../ARM_CR52_GIC" -I"include" $(BOARDFLAG) $(CLUSTER)
 OSASFLAGS := -g -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard 
 LDFLAGS := -nostartfiles -T image.ld -Wl,-Map=$(OutDir)/image.map -L$(CrossToolDir)/arm-none-eabi/newlib/lib/v8-r/fpv5/hard -lc -L$(CrossToolDir)/lib/gcc/arm-none-eabi/6.3.1/v8-r/fpv5/hard -lgcc
 
