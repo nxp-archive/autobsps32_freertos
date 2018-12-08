@@ -13,21 +13,15 @@ unsigned long SystemCoreClock = 100000000UL;
  */
 void SystemInit(void)
 {
-    #if defined(OS_FOR_VDK)
+#if defined(OS_FOR_VDK)
     /* SWT4 is not available in the FPGA thus it can be disabled */
     volatile swt_t * SWT4 = (volatile swt_t *)SWT4_BASE;
-    #endif
 
-    /* route all interrupts to cores */
-    IR_ROUTE_ALL_2_CPU( IR_ROUTE_2_CLUSTER0 | IR_ROUTE_2_CLUSTER1);
-
-    /* Disable SWT_4 - enabled at reset by default */
-    #if defined(OS_FOR_VDK)
     /* SWT4 is not available in the FPGA thus it can be disabled */
-        SWT4->SR = SWT_UNLOCK_SEQ1_U32;
-        SWT4->SR = SWT_UNLOCK_SEQ2_U32;
-        SWT4->CR = SWT4->CR & ~SWT_WDG_ENABLED_U32;
-    #endif
+    SWT4->SR = SWT_UNLOCK_SEQ1_U32;
+    SWT4->SR = SWT_UNLOCK_SEQ2_U32;
+    SWT4->CR = SWT4->CR & ~SWT_WDG_ENABLED_U32;
+#endif
 
     /* enable clock for both FTMs */
     MC_ME_PRTN0_PUPD = 0x1; /* PCUD */
@@ -38,13 +32,14 @@ void SystemInit(void)
 
 extern void SysTick_Handler(void);
 extern void vInitInterruptTable(int, void*);
-#define TIMER_ID			30
+
+#define TIMER_INT_ID        30
 
 void vUpdateTimer(void)
 {
     uint64_t cnt_val = SYSTIMER_GET_CNTPCT;
 	uint32_t val, val2;
-	cnt_val += (uint64_t)0x20000;
+	cnt_val += (uint64_t)OS_TICK;
 	val = cnt_val;
 	val2 = (cnt_val >> 32);
     SYSTIMER_SET_CNTP_CVAL(val, val2);
@@ -54,13 +49,31 @@ void prvSetupTimerInterrupt(void)
 {
 	uint64_t cnt_val = SYSTIMER_GET_CNTPCT;
 	uint32_t val, val2;
-	cnt_val += (uint64_t)0x20000;
+	cnt_val += (uint64_t)OS_TICK;
 	val = cnt_val;
 	val2 = (cnt_val >> 32);
     SYSTIMER_SET_CNTP_CVAL(val, val2);
-	vInitInterruptTable(TIMER_ID, SysTick_Handler);
+	vInitInterruptTable(TIMER_INT_ID, SysTick_Handler);
 	SYSTIMER_SET_CNTP_CTL(SYSTIMER_GET_CNTP_CTL | ENABLE);
-	vGicEnableInterrupt(30, 1);
+	vGicEnableInterrupt(TIMER_INT_ID, 1);
+}
+
+/** STM0 */
+extern void Stm_Handler(void);          /** user defined */
+#define STM_INT(id)             (56 + (id))
+void vSetupStm(int timerId, int channelId, int tickVal, int div)
+{
+#if defined(CLUSTER0)
+    IR_ROUTE_INT(STM_INT(timerId) - 32, IR_ROUTE_2_CLUSTER0);
+#elif defined(CLUSTER1)
+    IR_ROUTE_INT(STM_INT(timerId) - 32, IR_ROUTE_2_CLUSTER1);
+#else
+    #error "no cluster defined"
+#endif
+    vInitInterruptTable(STM_INT(timerId), Stm_Handler);
+    STM_ENABLE_CHAN(timerId, channelId, tickVal);
+    STM_ENABLE(timerId, div);
+    vGicEnableInterrupt(STM_INT(timerId), 3);
 }
 
 void vGicInit(void)

@@ -5,12 +5,28 @@
 extern "C"
 {
 #endif
+#define OS_TICK                 0x20000
 
 /* register access */
 #define SYS_REG32(address)      ( *(volatile int   *)(address) ) /**<  32-bit register */
 #define SYS_REG16(address)      ( *(volatile short *)(address) ) /**<  16-bit register */
 #define SYS_REG8(address)       ( *(volatile char  *)(address) ) /**<   8-bit register */
 
+/** STM */
+#define STM_BASE(id)                        (0x4011C000 + (id) * 0x4000)
+#define STM_ENABLE(id, div)                 (SYS_REG32(STM_BASE(id)) = 3 + ((0xff & (div)) << 8))
+#define STM_ENABLE_CHAN(id, chan, cmp)      {                                                                       \
+                                                SYS_REG32(STM_BASE(id) + 0x10 * (chan) + 0x14) = 1;                 \
+                                                SYS_REG32(STM_BASE(id) + 0x10 * (chan) + 0x18) = (cmp);             \
+                                                SYS_REG32(STM_BASE(id) + 0x10 * (chan) + 0x10) = 1;                 \
+                                            }
+#define STM_UPDATE_CHAN(id, chan, new)      {                                                                       \
+                                                uint32_t oldVal = SYS_REG32(STM_BASE(id) + 0x10 * (chan) + 0x18);   \
+                                                oldVal += (new);                                                    \
+                                                SYS_REG32(STM_BASE(id) + 0x10 * (chan) + 0x14) = 1;                 \
+                                                SYS_REG32(STM_BASE(id) + 0x10 * (chan) + 0x18) = oldVal;            \
+                                            }
+                                               
 #define SWT4_BASE           (0x40200000)
 #define SWT_UNLOCK_SEQ1_U32 (0x0000C520UL)
 #define SWT_UNLOCK_SEQ2_U32 (0x0000D928UL)
@@ -29,25 +45,8 @@ typedef struct {
 /* Interrupt Router base address */
 #define IR_BASE_ADDR 0x40198000UL
 
-/* Interrupt Router registers */
-#define IR_CP0IR   SYS_REG32( IR_BASE_ADDR + 0x800 ) /**< Interrupt Router CP0 Interrupt */
-#define IR_CP1IR   SYS_REG32( IR_BASE_ADDR + 0x804 ) /**< Interrupt Router CP1 Interrupt */
-#define IR_CP2IR   SYS_REG32( IR_BASE_ADDR + 0x808 ) /**< Interrupt Router CP2 Interrupt */
-
-#define IR_CPGIR   SYS_REG32( IR_BASE_ADDR + 0x820 ) /**< Interrupt Router CPU Generate Interrupt */
 #define IR_SPRC(x) SYS_REG16( IR_BASE_ADDR + 0x880 + ((x)<<1) ) /**< Interrupt Router Shared Peripheral Routing Control */
-    
-    
-/* Interrupt Router user interface */
-#define IR_CP0_CLEAR_SW_INT(x)  IR_CP0IR=(1<<(x))  /**< clear sw interrupt flag for CPU0 */
-#define IR_CP1_CLEAR_SW_INT(x)  IR_CP1IR=(1<<(x))  /**< clear sw interrupt flag for CPU1 */
-#define IR_CP2_CLEAR_SW_INT(x)  IR_CP2IR=(1<<(x))  /**< clear sw interrupt flag for CPU2 */
-
-#define IR_GEN_SW_INT_2_CP0(x)  IR_CPGIR=((1<<16)|(x))  /**< generate sw interrupt for CPU0, x={0,1,2,3} */
-#define IR_GEN_SW_INT_2_CP1(x)  IR_CPGIR=((1<<17)|(x))  /**< generate sw interrupt for CPU1, x={0,1,2,3} */
-#define IR_GEN_SW_INT_2_CP2(x)  IR_CPGIR=((1<<18)|(x))  /**< generate sw interrupt for CPU1, x={0,1,2,3} */
-
-#define IR_ROUTE_INT(id,cpu)    IR_SPRC(id)=(cpu)       /**< route interrupt to cpu, id=0->111, cpu={0,1} */
+#define IR_ROUTE_INT(id,cluster)    IR_SPRC(id)=(cluster)       /**< route interrupt to cluster, id=0->111, cluster={0,1} */
 
 
 #define IR_ROUTE_2_CLUSTER0     (1UL)
@@ -55,12 +54,12 @@ typedef struct {
 
 #define IR_ROUTE_NO_INT     (248UL)
 
-/* route all interrupts to selected cpu */
-#define IR_ROUTE_ALL_2_CPU(cpu)                     \
+/* route all interrupts to selected cluster */
+#define IR_ROUTE_ALL_2_CPU(cluster)                 \
             {                                       \
                 int x;                              \
                 for (x=0; x<IR_ROUTE_NO_INT; x++) { \
-                        IR_ROUTE_INT(x, (cpu));     \
+                        IR_ROUTE_INT(x, (cluster)); \
                     }                               \
             }                                       \
 
@@ -437,7 +436,7 @@ extern void vGicInit(void);
 extern void vUpdateTimer(void);
 extern void prvSetupTimerInterrupt(void);
 extern void vInitInterruptTable(int, void*);
-
+extern void vSetupStm(int, int, int, int);
 #ifdef __cplusplus
 }
 #endif
