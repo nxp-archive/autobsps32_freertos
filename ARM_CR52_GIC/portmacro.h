@@ -167,6 +167,11 @@ portFORCE_INLINE static void vPortSetBASEPRI( uint32_t ulNewMaskValue )
 }
 /*-----------------------------------------------------------*/
 
+#define port_YIELD_FROM_ISR()               {                               \
+                                                portDISABLE_INTERRUPTS();   \
+                                                vTaskSwitchContext();       \
+                                                portENABLE_INTERRUPTS();    \
+                                            }
 
 #ifdef __cplusplus
 }
