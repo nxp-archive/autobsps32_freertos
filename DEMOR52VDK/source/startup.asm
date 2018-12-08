@@ -82,14 +82,12 @@ el2_reset_exception:
 e1_code:
 	/* stack initialization only irq and system processor modes will have a stack */
 	/* set irq stack */
-	mrs r0, cpsr
-	and r0, r0, #~0x1F					/* reset mode */
-	orr r0, r0, #0x12					/* irq mode */
-	msr cpsr, r0
-	ldr r13, =_Stack_start
-	orr r0, r0, #0x1F					/* system mode */
-	msr cpsr, r0
-	ldr r13, =(_Stack_start - 0x800)
+	cps #0x12                           /* enter in irq mode, 1KB */
+	ldr r13, =(_Stack_start + 4)        /* set irq stack, full */
+	cps #0x13                           /* supervisor mode (svc) 2.5KB */
+	ldr r13, =(_Stack_start - 0x3fc)    /* set svc stack, full */
+	cps #0x1f                           /* system mode (sys) 0.5KB, used by main function */
+	ldr r13, =(_Stack_start - 0xdfc)    /* set sys stack, full */
 
 	/* set vtor */
 	ldr r0, =el1_vector_table
