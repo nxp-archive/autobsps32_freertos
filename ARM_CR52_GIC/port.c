@@ -33,12 +33,13 @@ void vPortYield(void)
 	OSASM(" mcr p15, 0, r2, c4, c6, 0						\t\n");	/* Write r2 into ICC_PMR, task mask level */
 	OSASM(" str r1, [r12]									\t\n"); /* save critical */
 	OSASM(" cmp r0, #0										\t\n");
-	OSASM(" beq 1f											\t\n"); /* go to solicited */
-	OSASM(" mov r0, sp										\t\n"); /* r0 contains user SP */
-	OSASM(" add sp, sp, #24									\t\n"); /* user stack unload r0 - r3, r12 */
-	OSASM(" msr   CPSR_c, #0x80|0x12						\t\n");
+	OSASM(" beq 1f											\t\n"); /* go to solicited, 1: */
+	OSASM(" mov r0, sp										\t\n"); /* prepare exit from interrupt, r0 contains user SP */
+	OSASM(" cpsid i											\t\n"); /* disable interrupts */
+	OSASM(" add sp, sp, #24									\t\n"); /* user stack unload r0 - r3, r12, r14 */
+	OSASM(" cps #0x12										\t\n"); /* enter in IRQ mode */
 	OSASM(" msr spsr, r3									\t\n"); /* unsolicited */
-	OSASM(" ldm r0, {r0-r3, r12, r14}						\t\n");
+	OSASM(" ldm r0, {r0-r3, r12, r14}						\t\n"); /* get registers from user stack */
 	OSASM(" subs pc, lr, #4									\t\n");	/* return from interrupt */
 	OSASM(" 1:												\t\n");
 	OSASM(" mrs r3, cpsr									\t\n"); /* unsolicited */
@@ -142,17 +143,21 @@ void vPortInterruptDispatcher(void)
 	OSASM(" bhi osInt										\t\n"); /* OS interrupt */
 	OSASM(" stmfd sp!, {r0-r2}								\t\n"); /* save volatiles to IRQ stack, r12 & r14 already saved */
 	OSASM(" ldr r0, =InterruptsTable						\t\n");
-	OSASM(" mrs r3, spsr									\t\n");
-	OSASM(" push {r3, r14}									\t\n"); /* spsr, save the interrupt ID */
-	OSASM(" ldr r2, [r0, r14, lsl #2]						\t\n");
-	OSASM(" cpsie i											\t\n"); /* enable interrupts */
+	OSASM(" mrs r1, LR_svc									\t\n");
+	OSASM(" mrs r2, SPSR_svc								\t\n");
+	OSASM(" mrs r3, SPSR									\t\n");
+	OSASM(" push {r1, r2, r3, r14}							\t\n"); /* save: LR_svc, SPSR_svc, SPSR_irq and the interrupt ID */
+	OSASM(" ldr r2, [r0, r14, lsl #2]						\t\n"); /* get user interrupt vector */
+	OSASM(" cpsie i, #0x13									\t\n"); /* enable interrupts and enter to svc mode */
 	OSASM(" cmp r2, #0										\t\n");
 	OSASM(" blxne r2										\t\n"); /* call user interrupt handler */
-	OSASM(" cpsid i											\t\n"); /* disable interrupts */
-	OSASM(" pop {r0, r1}									\t\n"); /* restore the interrupt ID */
-	OSASM(" msr spsr, r0									\t\n");
-	OSASM(" mcr p15, 0, r1, c12, c12, 1						\t\n"); /* End Of Interrupt */
-	OSASM(" ldmfd sp!, {r0-r3, r12, r14}					\t\n"); /* return from irq */
+	OSASM(" cpsid i, 0x12									\t\n"); /* disable interrupts and enter to irq mode */
+	OSASM(" pop {r1, r2, r3, r14}							\t\n"); /* restore: LR_svc, SPSR_svc, SPSR_irq and the interrupt ID */
+	OSASM(" msr LR_svc, r1									\t\n");
+	OSASM(" msr SPSR_svc, r2								\t\n");
+	OSASM(" msr SPSR, r3									\t\n");
+	OSASM(" mcr p15, 0, r14, c12, c12, 1					\t\n"); /* End Of Interrupt */
+	OSASM(" ldmfd sp!, {r0-r3, r12, r14}					\t\n"); /* restore user registers */
 	OSASM(" subs pc, lr, #4									\t\n"); /* return from irq */
 	OSASM(" osInt:											\t\n"); /* OS interrupt handler */
 	OSASM(" ldr r12, =uxInterruptNested						\t\n");
@@ -162,8 +167,7 @@ void vPortInterruptDispatcher(void)
 	OSASM(" str r3, [r12]									\t\n"); /* save uxInterruptNested */
 	OSASM(" stmnedb sp!, {r0-r2}							\t\n"); /* uxInterruptNested != 0, using irq stack */
 	OSASM(" bne 1f											\t\n"); /* jump to "prepare Call user handler" */
-	OSASM(" stmdb sp, {sp}^									\t\n"); /* get user stack pointer */
-	OSASM(" ldr r12, [sp, #-4]								\t\n"); /* r12 is the user stack */
+	OSASM(" mrs r12, SP_usr									\t\n"); /* get user stack to r12 */
 	OSASM(" sub r12, r12, #12								\t\n"); /* space for r3, r12, r14 */
 	OSASM(" stmdb	r12!, {r0-r2}							\t\n"); /* save users regs to user stack, */
 	OSASM(" ldmfd sp!, {r0-r2}								\t\n"); /* get r3 -> r0, r12 -> r1, r14-> r2, unload irq stack */
@@ -175,24 +179,26 @@ void vPortInterruptDispatcher(void)
 	OSASM(" push {r1}										\t\n"); /* current task TCB to IRQ stack */
 	OSASM(" 1:												\t\n"); /* prepare Call user handler */
 	OSASM(" ldr r0, =InterruptsTable						\t\n");
-	OSASM(" mrs r3, spsr									\t\n");
-	OSASM(" push {r3, r14}									\t\n"); /* spsr, save the interrupt ID */
+	OSASM(" mrs r1, LR_svc									\t\n");
+	OSASM(" mrs r2, SPSR_svc								\t\n");
+	OSASM(" mrs r3, SPSR									\t\n");
+	OSASM(" push {r1, r2, r3, r14}							\t\n"); /* save: LR_svc, SPSR_svc, SPSR_irq and the interrupt ID */
 	OSASM(" ldr r2, [r0, r14, lsl #2]						\t\n");
-	OSASM(" cpsie i											\t\n"); /* enable interrupts */
+	OSASM(" cpsie i, #0x13									\t\n"); /* enable interrupts, go to svc mode */
 	OSASM(" cmp r2, #0										\t\n");
 	OSASM(" blxne r2										\t\n"); /* call user interrupt handler */
-	OSASM(" cpsid i											\t\n"); /* disable interrupts */
-	OSASM(" pop {r0, r1}									\t\n"); /* restore the interrupt ID */
+	OSASM(" cpsid i, #0x12									\t\n"); /* disable interrupts, enter in IRQ mode */
+	OSASM(" pop {r1, r2, r3, r14}							\t\n"); /* restore: LR_svc, SPSR_svc, SPSR_irq and the interrupt ID */
 	OSASM(" ldr r12, =uxInterruptNested						\t\n");
-	OSASM(" msr spsr, r0									\t\n");
-	OSASM(" mcr p15, 0, r1, c12, c12, 1						\t\n"); /* End Of Interrupt */
+	OSASM(" msr LR_svc, r1									\t\n");
+	OSASM(" msr SPSR_svc, r2								\t\n");
+	OSASM(" msr SPSR, r3									\t\n");
+	OSASM(" mcr p15, 0, r14, c12, c12, 1					\t\n"); /* End Of Interrupt */
 	OSASM(" ldr r3, [r12]									\t\n");
 	OSASM(" subs r3, r3, #1									\t\n"); /* inc uxInterruptNested */
 	OSASM(" str r3, [r12]									\t\n"); /* save uxInterruptNested */
-
 	OSASM(" ldmnefd sp!, {r0-r3, r12, r14}					\t\n"); /* return from irq uxInterruptNested != 0 */
 	OSASM(" subnes pc, lr, #4								\t\n"); /* return from irq uxInterruptNested != 0 */
-
 	OSASM(" mrs r0, SP_usr									\t\n"); /* get user stack to r0 */
 	OSASM(" ldr r14, =pxCurrentTCB							\t\n");
 	OSASM(" pop {r1}										\t\n"); /* get prev TCB from IRQ stack */
