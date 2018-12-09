@@ -188,7 +188,7 @@ void vTask6( void *pvParameters )
 	}
 }
 
-void Stm_Handler(void)
+void Stm_Handler0(void)
 {
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE, xResult = pdFAIL;
 
@@ -202,6 +202,27 @@ void Stm_Handler(void)
 		}
 	}
 }
+
+void Stm_Handler1(void)
+{
+	STM_UPDATE_CHAN(1, 0, ((OS_TICK >> 4) + (stmInt[1] & 0xfff)));
+	stmInt[1] ++;
+}
+
+void Stm_Handler2(void)
+{
+	STM_UPDATE_CHAN(2, 0, ((OS_TICK >> 4) + (stmInt[2] & 0xfff)));
+	stmInt[2] ++;
+}
+
+TimerCfg_t stm0 = {0, 0, (OS_TICK >> 4) + (OS_TICK >> 6), 0};
+InterruptCfg_t intStm0 = {(void*)Stm_Handler0, 3};
+
+TimerCfg_t stm1 = {1, 0, (OS_TICK >> 4) + (OS_TICK >> 5), 0};
+InterruptCfg_t intStm1 = {(void*)Stm_Handler1, 4};
+
+TimerCfg_t stm2 = {2, 0, (OS_TICK >> 4) + (OS_TICK >> 5), 0};
+InterruptCfg_t intStm2 = {(void*)Stm_Handler2, 11};
 
 int main(void)
 {
@@ -218,7 +239,9 @@ int main(void)
 	
 	vInitInterruptTable(1, SGI1_Handler);
 	vGicEnableInterrupt(1, 10);
-    vSetupStm(0, 0, (OS_TICK >> 4), 0);
+    vSetupStm(&stm0, &intStm0);
+    vSetupStm(&stm1, &intStm1);
+    vSetupStm(&stm2, &intStm2);
 	vTaskStartScheduler();
 
 	while (1) {

@@ -58,22 +58,20 @@ void prvSetupTimerInterrupt(void)
 	vGicEnableInterrupt(TIMER_INT_ID, 1);
 }
 
-/** STM0 */
-extern void Stm_Handler(void);          /** user defined */
 #define STM_INT(id)             (56 + (id))
-void vSetupStm(int timerId, int channelId, int tickVal, int div)
+void vSetupStm(TimerCfg_t* pTimerCfg, InterruptCfg_t* pIntCfg)
 {
 #if defined(CLUSTER0)
-    IR_ROUTE_INT(STM_INT(timerId) - 32, IR_ROUTE_2_CLUSTER0);
+    IR_ROUTE_INT(STM_INT(pTimerCfg->m_TimerId) - 32, IR_ROUTE_2_CLUSTER0);
 #elif defined(CLUSTER1)
-    IR_ROUTE_INT(STM_INT(timerId) - 32, IR_ROUTE_2_CLUSTER1);
+    IR_ROUTE_INT(STM_INT(pTimerCfg->m_TimerId) - 32, IR_ROUTE_2_CLUSTER1);
 #else
     #error "no cluster defined"
 #endif
-    vInitInterruptTable(STM_INT(timerId), Stm_Handler);
-    STM_ENABLE_CHAN(timerId, channelId, tickVal);
-    STM_ENABLE(timerId, div);
-    vGicEnableInterrupt(STM_INT(timerId), 3);
+    vInitInterruptTable(STM_INT(pTimerCfg->m_TimerId), pIntCfg->mp_Handler);
+    STM_ENABLE_CHAN(pTimerCfg->m_TimerId, pTimerCfg->m_ChannelId, pTimerCfg->m_Val);
+    STM_ENABLE(pTimerCfg->m_TimerId, pTimerCfg->m_Div);
+    vGicEnableInterrupt(STM_INT(pTimerCfg->m_TimerId), pIntCfg->m_Priority);
 }
 
 void vGicInit(void)

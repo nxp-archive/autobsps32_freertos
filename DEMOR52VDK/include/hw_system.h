@@ -430,13 +430,28 @@ CNTP_CTL, Counter-timer Physical Timer Control register fields
 #define IMASK                   (1 << 1)
 #define ISTATUS                 (1 << 2)
 
+typedef struct
+{
+    int m_TimerId;
+    int m_ChannelId;
+    int m_Val;
+    int m_Div;
+} TimerCfg_t;
+
+typedef struct
+{
+    void* mp_Handler;
+    int m_Priority;
+} InterruptCfg_t;
+
 
 extern void vGicEnableInterrupt(int, int);
 extern void vGicInit(void);
 extern void vUpdateTimer(void);
 extern void prvSetupTimerInterrupt(void);
 extern void vInitInterruptTable(int, void*);
-extern void vSetupStm(int, int, int, int);
+extern void vSetupStm(TimerCfg_t*, InterruptCfg_t*);
+
 #ifdef __cplusplus
 }
 #endif
