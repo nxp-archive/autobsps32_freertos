@@ -1,0 +1,108 @@
+;
+; Copyright 2018 NXP
+;
+
+
+;========= Script for flash initialization =========
+
+local &elfname
+entry &elfname
+
+; setup MMU for FLASH, RAM and peripheral access
+MMU.Set TLB1 0. 0xC0000580 0xFFE0000A 0xFFE0003F
+MMU.Set TLB1 1. 0xC0000700 0x00000000 0x0000003F
+MMU.Set TLB1 2. 0xC0000700 0x20000000 0x0000003F
+MMU.Set TLB1 3. 0xC0000480 0x40000008 0x4000003F
+MMU.Set TLB1 4. 0xC0000580 0xC3E0000A 0xC3E0003F
+
+; ------------------------------------------------------------------------------
+; Flash declaration
+;========================================================================
+
+print "Starting FLASH sector creation:"
+
+FLASH.RESet
+
+; Low address space
+FLASH.Create 1. 0x00000000--0x0000FFFF TARGET Quad 0x0000    ; Low Flash Block 0 (Data Flash)
+FLASH.Create 1. 0x00010000--0x0001FFFF TARGET Quad 0x0001    ; Low Flash Block 1 (Data Flash)
+
+; Mid address space
+FLASH.Create 2. 0x00020000--0x0002FFFF TARGET Quad 0x0100    ; Mid Flash Block 0 (Data Flash)
+FLASH.Create 2. 0x00030000--0x0003FFFF TARGET Quad 0x0101    ; Mid Flash Block 1 (Data Flash)
+
+; High address space
+FLASH.Create 3. 0x00600000--0x00603FFF NOP    Quad 0x0200    ; High Flash Block 0 (CSE)
+FLASH.Create 3. 0x00604000--0x00607FFF NOP    Quad 0x0201    ; High Flash Block 1 (CSE)
+
+; Large address space
+FLASH.Create 4. 0x00800000--0x0083FFFF TARGET Quad 0x0300    ; Large Flash Block 0 (Boot)
+FLASH.Create 4. 0x00840000--0x0087FFFF TARGET Quad 0x0301    ; Large Flash Block 1 (Calibration)
+FLASH.Create 4. 0x00880000--0x008BFFFF TARGET Quad 0x0302    ; Large Flash Block 2 (Calibration)
+FLASH.Create 4. 0x008C0000--0x008FFFFF TARGET Quad 0x0303    ; Large Flash Block 3 (Calibration)
+FLASH.Create 4. 0x00900000--0x0093FFFF TARGET Quad 0x0304    ; Large Flash Block 4 (Calibration)
+FLASH.Create 4. 0x00940000--0x0097FFFF TARGET Quad 0x0305    ; Large Flash Block 5
+FLASH.Create 4. 0x00980000--0x009BFFFF TARGET Quad 0x0306    ; Large Flash Block 6
+FLASH.Create 4. 0x009C0000--0x009FFFFF TARGET Quad 0x0307    ; Large Flash Block 7
+FLASH.Create 4. 0x00A00000--0x00A3FFFF TARGET Quad 0x0308    ; Large Flash Block 8
+FLASH.Create 4. 0x00A40000--0x00A7FFFF TARGET Quad 0x0309    ; Large Flash Block 9
+FLASH.Create 4. 0x00A80000--0x00ABFFFF TARGET Quad 0x030A    ; Large Flash Block 10
+FLASH.Create 4. 0x00AC0000--0x00AFFFFF TARGET Quad 0x030B    ; Large Flash Block 11
+FLASH.Create 4. 0x00B00000--0x00B3FFFF TARGET Quad 0x030C    ; Large Flash Block 12
+FLASH.Create 4. 0x00B40000--0x00B7FFFF TARGET Quad 0x030D    ; Large Flash Block 13
+FLASH.Create 4. 0x00B80000--0x00BBFFFF TARGET Quad 0x030E    ; Large Flash Block 14
+FLASH.Create 4. 0x00BC0000--0x00BFFFFF TARGET Quad 0x030F    ; Large Flash Block 15
+FLASH.Create 4. 0x00C00000--0x00C3FFFF TARGET Quad 0x0310    ; Large Flash Block 16
+FLASH.Create 4. 0x00C40000--0x00C7FFFF TARGET Quad 0x0311    ; Large Flash Block 17
+FLASH.Create 4. 0x00C80000--0x00CBFFFF TARGET Quad 0x0312    ; Large Flash Block 18
+FLASH.Create 4. 0x00CC0000--0x00CFFFFF TARGET Quad 0x0313    ; Large Flash Block 19
+FLASH.Create 4. 0x00D00000--0x00D3FFFF TARGET Quad 0x0314    ; Large Flash Block 20
+FLASH.Create 4. 0x00D40000--0x00D7FFFF TARGET Quad 0x0315    ; Large Flash Block 21
+FLASH.Create 4. 0x00D80000--0x00DBFFFF TARGET Quad 0x0316    ; Large Flash Block 22
+FLASH.Create 4. 0x00DC0000--0x00DFFFFF TARGET Quad 0x0317    ; Large Flash Block 23
+FLASH.Create 4. 0x00E00000--0x00E3FFFF TARGET Quad 0x0318    ; Large Flash Block 24
+FLASH.Create 4. 0x00E40000--0x00E7FFFF TARGET Quad 0x0319    ; Large Flash Block 25
+FLASH.Create 4. 0x00E80000--0x00EBFFFF TARGET Quad 0x031A    ; Large Flash Block 26
+FLASH.Create 4. 0x00EC0000--0x00EFFFFF TARGET Quad 0x031B    ; Large Flash Block 27
+FLASH.Create 4. 0x00F00000--0x00F3FFFF TARGET Quad 0x031C    ; Large Flash Block 28
+FLASH.Create 4. 0x00F40000--0x00F7FFFF TARGET Quad 0x031D    ; Large Flash Block 29
+FLASH.Create 4. 0x00F80000--0x00FBFFFF TARGET Quad 0x031E    ; Large Flash Block 30
+FLASH.Create 4. 0x00FC0000--0x00FFFFFF TARGET Quad 0x031F    ; Large Flash Block 31
+
+; UTEST address space
+FLASH.Create 6. 0x00400000--0x00403FFF TARGET Quad 0x0500 /OTP /INFO "UTEST"
+
+; Overlay enabled mapping
+FLASH.CreateALIAS 0x08A00000--0x08FFFFFF 0x00A00000   ; Small & medium flash blocks
+FLASH.CreateALIAS 0x09000000--0x09FFFFFF 0x01000000   ; Large flash blocks
+
+FLASH.TARGET E:0x40000000 E:0x40004000 0x1000 ~~/demo/powerpc/flash/quad/c55fm5777c.bin /STACKSIZE 0x0400 /DualPort
+
+;========================================================================
+; Flash programming
+
+print "Flash Programming start"
+FLASH.UNLOCK ALL
+FLASH.ReProgram ALL /Erase
+Data.Load.Elf &elfname.elf
+FLASH.ReProgram OFF
+
+;========================================================================
+;clear the TRACE32 screen
+WinCLEAR
+SYStem.RESet
+SYStem.BdmClock 3.0MHz
+SYStem.DETECT.CPU
+SYStem.Option.WATCHDOG OFF
+SYStem.OPTION DUALPORT ON
+SYStem.Up
+
+;Map.BOnchip 0x00020000--0x00FFFFFF
+go __start
+mode.hll
+
+;load program (if FLASH selected than load only debug symbols)
+Data.Load.Elf &elfname.elf  /GLOBTYPES /NOCODE
+
+ENDDO
+
