@@ -196,6 +196,14 @@ static portFORCE_INLINE void vPortMaskInterrupts( void )
     BaseType_t msr;
     uint32_t core_ID;
     portGetSPR(core_ID,286);
+    #if defined(WORKAROUND_MPC5777C) /* MPC5777C specific workaround. */
+    __asm__ volatile
+    (
+        /* disable interrupts */
+        "wrteei 0 \n\t"
+    );
+    (void)msr;
+    #else
     /* See MPC5746C RM Rev 3   section 21.8.5.2  "Ensuring coherency"
        (most restrictive rules)
        See MPC5646C RM Rev 5   section 19.10.4.2 "Ensuring coherency"
@@ -208,7 +216,6 @@ static portFORCE_INLINE void vPortMaskInterrupts( void )
         "wrteei  0 \n\t"
         : "=r" (msr)
     );
-
     /* Set current interrupt priority to max API priority */
     portINTC_CPR(core_ID) = configMAX_API_CALL_INTERRUPT_PRIORITY;
 
@@ -222,6 +229,7 @@ static portFORCE_INLINE void vPortMaskInterrupts( void )
         "se_isync \n\t"
         : : "r" (msr)
     );
+    #endif
 }
 
 static portFORCE_INLINE UBaseType_t ulPortMaskInterruptsFromISR( void )
@@ -240,6 +248,14 @@ static portFORCE_INLINE void vPortUnmaskInterrupts( UBaseType_t priority )
     BaseType_t msr;
     uint32_t core_ID;
     portGetSPR(core_ID,286);
+    #if defined(WORKAROUND_MPC5777C) /* MPC5777C specific workaround. */
+    __asm__ volatile
+    (
+        "wrteei 1 \n\t"
+    );
+    (void)priority;
+    (void)msr;
+    #else
     /* See MPC5746C RM Rev 3   section 21.8.5.2  "Ensuring coherency"
        (most restrictive rules)
        See MPC5646C RM Rev 5   section 19.10.4.2 "Ensuring coherency"
@@ -265,6 +281,7 @@ static portFORCE_INLINE void vPortUnmaskInterrupts( UBaseType_t priority )
         "wrtee %0 \n\t"
         : : "r" (msr)
     );
+    #endif
 }
 
 static portFORCE_INLINE BaseType_t xPortSyscall( const BaseType_t number )

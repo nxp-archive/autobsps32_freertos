@@ -344,15 +344,16 @@
 
         portLOAD_NESTED_INTERRUPT_COUNT
         portINCREMENT_NESTED_INTERRUPT_COUNT
-
+#if defined(WORKAROUND_MPC5777C)
+        se_b skip_enable_INT
+#endif
         portSET_INTERRUPT_PRIORITY_CEILING      # Set current interrupt priority to configMAX_API_CALL_INTERRUPT_PRIORITY
                                                 # to allow hardware, non-API interrupts to continue to run while
                                                 # vTaskSwitchContext runs
 
         mbar                                    # Ensure write to raise INTC_CPR completes before re-enabling interrupts
-
         portENABLE_GLOBAL_INTERRUPTS            # Set MSR[EE]
-
+skip_enable_INT:
         se_isync                                # re-fetch Processor pipeline
                                                 # See MPC5746C RM Rev 3   section 21.8.5.2  "Ensuring coherency" (most restrictive rules)
                                                 # See MPC5646C RM Rev 5   section 19.10.4.2 "Ensuring coherency"
@@ -363,9 +364,11 @@
 
         mbar                                    # flush out writes from store buffer
                                                 # See "Ensuring coherency" references above
-
+#if defined(WORKAROUND_MPC5777C)
+        se_b skip_disable_INT
+#endif
         portDISABLE_GLOBAL_INTERRUPTS           # Clear MSR[EE]
-
+skip_disable_INT:
         portLOAD_NESTED_INTERRUPT_COUNT
         portDECREMENT_NESTED_INTERRUPT_COUNT
 
@@ -377,9 +380,11 @@
         portRESTORE_CRITICAL_NESTING_COUNT
         se_cmpi       r4, 0                     # Check if the nested critical section count is above zero
         se_bgt        1f                        # If it is, skip setting CPR to 0
-
+#if defined(WORKAROUND_MPC5777C)
+        se_b skip_clear_pri_ceiling
+#endif
         portCLEAR_INTERRUPT_PRIORITY_CEILING    # Else set CPR to 0
-
+skip_clear_pri_ceiling:
     1:  portRESTORE_CONTEXT                     # Restore new task's context
         se_rfi                                  # End of system call handler, re-enables interrupts, synchronizes context
 .endfunc
