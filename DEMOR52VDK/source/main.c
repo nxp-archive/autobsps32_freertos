@@ -15,15 +15,24 @@ volatile uint32_t task_6 = 0;
 volatile uint32_t error_sync = 0;
 volatile uint32_t idle_task = 0;
 volatile uint32_t int1 = 0;
+volatile uint32_t int2 = 0;
 volatile uint32_t timeout = 0;
 volatile uint32_t stmInt[4] = {0, 0, 0, 0};
-
+volatile uint32_t svcCnt = 0;
 #if configUSE_IDLE_HOOK
 void vApplicationIdleHook(void) {
 	idle_task ++;
 	OSASM(" wfi						\t\n");
 }
 #endif
+
+
+void SVC_Handler(void)
+{
+    OSINTC_SET_ICC_SGI1R(2, 1);
+    svcCnt ++;
+}
+
 
 SemaphoreHandle_t xSemaphore;
 
@@ -38,6 +47,7 @@ void vTask1( void *pvParameters )
 		}
         task_1 ++;
         vTaskDelay( 1 + ID);
+        OSASM(" svc #0      \t\n");
     }
 }
 
@@ -163,6 +173,11 @@ void SGI1_Handler(void)
 	int1 ++;
 }
 
+void SGI2_Handler(void)
+{
+	int2 ++;
+}
+
 EventGroupHandle_t xEventGroup1;
 void vTask6( void *pvParameters )
 {
@@ -239,6 +254,8 @@ int main(void)
 	
 	vInitInterruptTable(1, SGI1_Handler);
 	vGicEnableInterrupt(1, 10);
+    vInitInterruptTable(2, SGI2_Handler);
+	vGicEnableInterrupt(2, 9);
     vSetupStm(&stm0, &intStm0);
     vSetupStm(&stm1, &intStm1);
     vSetupStm(&stm2, &intStm2);

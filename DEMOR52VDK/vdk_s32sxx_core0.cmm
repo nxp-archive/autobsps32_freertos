@@ -33,7 +33,7 @@ Data.LOAD.ELF Output\image.elf /GLOBTYPES /GT /MW /BUGFIX
 ;DATA.LIST
 ;SYMBOL.BROWSE.FUNCTION
 BREAK.RESET
-v.w ui32_ms_cnt task_1 task_2 task_3 task_4 task_5 task_6 idle_task error_sync timeout uxInterruptNested stmInt
+v.w ui32_ms_cnt task_1 task_2 task_3 task_4 task_5 task_6 idle_task error_sync timeout uxInterruptNested stmInt int2 svcCnt
 
 ; simulate reset event
 Register.Set PC el2_Reset_Handler

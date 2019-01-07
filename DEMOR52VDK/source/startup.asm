@@ -1,5 +1,6 @@
 
 	.extern vPortInterruptDispatcher
+    .extern vPortSVCDispatcher
 	.extern SystemInit
 	.align 5
 	.section .startup,"ax"
@@ -24,7 +25,7 @@ el2_vector_table:
 el1_vector_table:
 	ldr pc, =el2_Reset_Handler			/* the processor goes to el2 after reset */
 	ldr pc, =el1_undefined_exception
-	ldr pc, =el1_svc_exception
+	ldr pc, =vPortSVCDispatcher
 	ldr pc, =el1_prefetch_exception
 	ldr pc, =el1_abort_exception
 	nop
@@ -38,7 +39,6 @@ el2_undefined_exception:
 el1_undefined_exception:
 	b .
 el2_svc_exception:
-el1_svc_exception:
 	b .
 el2_prefetch_exception:
 el1_prefetch_exception:

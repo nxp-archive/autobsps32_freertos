@@ -253,3 +253,17 @@ void xPortSysTickHandler( void )
 	}
 	portENABLE_INTERRUPTS();
 }
+
+extern void SVC_Handler(unsigned long* info);
+void vPortSVCDispatcher(void) __attribute__ (( naked ));
+void vPortSVCDispatcher(void)
+{
+    OSASM(" stmfd r13!, {r0-r3, r12, r14}   \t\n");    /* save r0 - r3, r12, r14 to SVC stack */
+    OSASM(" cpsie i                         \t\n"); /* enable interrupts */
+    OSASM(" mov r0, r13                     \t\n");
+    OSASM(" ldr r3, =SVC_Handler            \t\n");
+    OSASM(" cmp r3, #0                      \t\n");
+    OSASM(" blxne r3                        \t\n"); /* call user svc handler */
+    OSASM(" cpsid i                         \t\n"); /* disable interrupts */
+    OSASM(" ldmfd r13!, {r0-r3, r12, pc}^   \t\n");    /* restore r0 - r3, r12, r15 to SVC stack */
+}

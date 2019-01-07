@@ -29,7 +29,7 @@ entry &elfname
 Data.LOAD.ELF Output\image.elf /GLOBTYPES /GT /MW /BUGFIX /NOCODE
 
 
-v.w ui32_ms_cnt task_1 task_2 task_3 task_4 task_5 task_6 idle_task error_sync timeout uxInterruptNested stmInt
+v.w ui32_ms_cnt task_1 task_2 task_3 task_4 task_5 task_6 idle_task error_sync timeout uxInterruptNested stmInt int2 svcCnt
 
 ; increase trace buffer size
 trace.size 10485760.
