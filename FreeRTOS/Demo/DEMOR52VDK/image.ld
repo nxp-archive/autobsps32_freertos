@@ -24,21 +24,21 @@ MEMORY
 
 SECTIONS
 {
-	.startup :
-	{
-		. = ALIGN(4);
+    .startup :
+    {
+        . = ALIGN(4);
         KEEP(*(.startup)) /* Startup code */
         . = ALIGN(4);
-	} > OsInternalRAM
-	.interruptTable :
-	{
-		. = ALIGN(4);
+    } > OsInternalRAM
+    .interruptTable :
+    {
+        . = ALIGN(4);
         KEEP(*(.interruptTable)) /* Startup code */
         . = ALIGN(4);
-	} > OsInternalRAM
-	.text :
-	{
-		. = ALIGN(4);
+    } > OsInternalRAM
+    .text :
+    {
+        . = ALIGN(4);
         *(.text)           /* .text sections (code) */
         *(.text*)          /* .text* sections (code) */
         *(.rodata)         /* .rodata sections (constants, strings, etc.) */
@@ -50,8 +50,8 @@ SECTIONS
         KEEP (*(.fini))
         . = ALIGN(4);
         _etext = .;        /* define a global symbols at end of code */
-	} > OsInternalRAM
-	/* Initialized data sections goes into RAM, load LMA copy after code */
+    } > OsInternalRAM
+    /* Initialized data sections goes into RAM, load LMA copy after code */
     .data : 
     {
         . = ALIGN(4);
@@ -79,11 +79,11 @@ SECTIONS
         __bss_end__ = _ebss;
     } > OsInternalRAM
 
-	.stack_main :
-	{
-		. = ALIGN(4);
+    .stack_main :
+    {
+        . = ALIGN(4);
         _Stack_end = .;
         *(.stack_main)
         _Stack_start = .;
-	} > OsInternalRAM
+    } > OsInternalRAM
 }

@@ -80,13 +80,13 @@ typedef struct {
             __asm volatile(" "OSSTRING(mcrr p##coproc)", "OSSTRING(opcode1)", %0, %1, "OSSTRING(c##CRm)" ": : "r"(Rd), "r"(Rd2)); })
 /* read 64bit from coprocessor */
 #define __MRRC(coproc, opcode1, CRm) ({ \
-			uint32_t Rd, Rd2;							\
-			uint64_t retval;							\
-			__asm volatile(" "OSSTRING(mrrc p##coproc)", "OSSTRING(opcode1)", %0, %1, "OSSTRING(c##CRm)" ": "=r"(Rd), "=r"(Rd2): ); \
-			retval = ((uint64_t)Rd2);					\
-			retval = (retval << 32);					\
-			retval |= Rd;								\
-			retval;})
+            uint32_t Rd, Rd2;                           \
+            uint64_t retval;                            \
+            __asm volatile(" "OSSTRING(mrrc p##coproc)", "OSSTRING(opcode1)", %0, %1, "OSSTRING(c##CRm)" ": "=r"(Rd), "=r"(Rd2): ); \
+            retval = ((uint64_t)Rd2);                   \
+            retval = (retval << 32);                    \
+            retval |= Rd;                               \
+            retval;})
 
 /** GIC V3 */
 
@@ -206,7 +206,7 @@ typedef struct {
 #define OSINTC_GIC_GROUP_INTX(intId, group) {                                            \
     uint32_t reg_adr = OSINTC_GIC_GET_BASE;    /* get base address */                     \
     if ((intId) < 32) {                                                                  \
-        reg_adr += (OSINTC_GICR_PPI_0 +											           \
+        reg_adr += (OSINTC_GICR_PPI_0 +                                                    \
              + OSINTC_GICR_IGROUPR0);                                                    \
     }                                                                                    \
     else {                                                                               \

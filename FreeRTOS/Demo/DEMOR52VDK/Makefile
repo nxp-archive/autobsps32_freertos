@@ -37,13 +37,13 @@ LDFLAGS := -nostartfiles -T image.ld -Wl,-Map=$(OutDir)/image.map \
 			-L$(CrossToolDir)/lib/gcc/arm-none-eabi/6.3.1/v8-r/fpv5/hard -lgcc
 
 OBJFILES_OS := $(OutDir)/tasks.o \
-			   $(OutDir)/timers.o \
-			   $(OutDir)/event_groups.o \
-			   $(OutDir)/queue.o \
-			   $(OutDir)/list.o \
-			   $(OutDir)/croutine.o \
-			   $(OutDir)/port.o \
-			   $(OutDir)/heap_4.o
+			$(OutDir)/timers.o \
+			$(OutDir)/event_groups.o \
+			$(OutDir)/queue.o \
+			$(OutDir)/list.o \
+			$(OutDir)/croutine.o \
+			$(OutDir)/port.o \
+			$(OutDir)/heap_4.o
 
 $(OutDir)/%.o: $(OsPath)/Source/%.c
 	$(CC) $(OSCFLAGS) -c -o $@ $<
@@ -55,7 +55,7 @@ $(OutDir)/%.o: $(OsPath)/Source/portable/MemMang/%.c
 	$(CC) $(OSCFLAGS) -c -o $@ $<
 
 OBJFILES_APP := $(OutDir)/vector.o \
-                $(OutDir)/startup.o \
+				$(OutDir)/startup.o \
 				$(OutDir)/hw_system.o \
 				$(OutDir)/main.o
 
