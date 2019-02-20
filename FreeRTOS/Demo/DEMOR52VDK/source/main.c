@@ -183,7 +183,7 @@ void SGI0_Handler(void)
 
     if( xResult != pdFAIL ) {
         if (xHigherPriorityTaskWoken) {
-            port_YIELD_FROM_ISR();
+            portYIELD_FROM_ISR();
         }
     }
     OSINTC_SET_ICC_SGI1R(1, 1);
@@ -234,7 +234,7 @@ void Stm_Handler0(void)
 
     if( xResult != pdFAIL ) {
         if (xHigherPriorityTaskWoken) {
-            port_YIELD_FROM_ISR();
+            portYIELD_FROM_ISR();
         }
     }
 }
