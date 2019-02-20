@@ -57,6 +57,8 @@ $(OutDir)/%.o: $(OsPath)/Source/portable/MemMang/%.c
 OBJFILES_APP := $(OutDir)/vector.o \
 				$(OutDir)/startup.o \
 				$(OutDir)/hw_system.o \
+                $(OutDir)/gicv3.o \
+                $(OutDir)/generic_timer.o \
 				$(OutDir)/main.o
 
 $(OutDir)/%.o: source/%.c

@@ -28,7 +28,7 @@
 #ifndef PORTMACRO_H
 #define PORTMACRO_H
 #include <stdint.h>
-#include "hw_system.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
