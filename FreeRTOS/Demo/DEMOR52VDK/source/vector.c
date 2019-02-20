@@ -19,9 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-void* InterruptsTable[1024] __attribute__ ((section ("interruptTable")));
+void* __VECTOR_RAM[1024] __attribute__ ((section ("interruptTable")));
 
 void vInitInterruptTable(int id, void* vector)
 {
-    InterruptsTable[id] = vector;
+    __VECTOR_RAM[id] = vector;
 }
