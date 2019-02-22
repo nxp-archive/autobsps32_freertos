@@ -196,7 +196,8 @@ static portFORCE_INLINE void vPortMaskInterrupts( void )
     BaseType_t msr;
     uint32_t core_ID;
     portGetSPR(core_ID,286);
-    #if defined(WORKAROUND_MPC5777C) /* MPC5777C specific workaround. */
+    /* See MPC5777C RM Rev 8 section 15.9.5.2.1 Interrupt with blocked priority */
+    #if defined(CPU_MPC5777C)
     __asm__ volatile
     (
         /* disable interrupts */
@@ -248,7 +249,8 @@ static portFORCE_INLINE void vPortUnmaskInterrupts( UBaseType_t priority )
     BaseType_t msr;
     uint32_t core_ID;
     portGetSPR(core_ID,286);
-    #if defined(WORKAROUND_MPC5777C) /* MPC5777C specific workaround. */
+    /* See MPC5777C RM Rev 8 section 15.9.5.2.1 Interrupt with blocked priority */
+    #if defined(CPU_MPC5777C)
     __asm__ volatile
     (
         "wrteei 1 \n\t"

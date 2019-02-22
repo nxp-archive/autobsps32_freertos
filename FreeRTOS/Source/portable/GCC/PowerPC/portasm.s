@@ -344,7 +344,9 @@
 
         portLOAD_NESTED_INTERRUPT_COUNT
         portINCREMENT_NESTED_INTERRUPT_COUNT
-#if defined(WORKAROUND_MPC5777C)
+
+# See MPC5777C RM Rev 8 section 15.9.5.2.1 Interrupt with blocked priority
+#if defined(CPU_MPC5777C)
         se_b skip_enable_INT
 #endif
         portSET_INTERRUPT_PRIORITY_CEILING      # Set current interrupt priority to configMAX_API_CALL_INTERRUPT_PRIORITY
@@ -364,7 +366,9 @@ skip_enable_INT:
 
         mbar                                    # flush out writes from store buffer
                                                 # See "Ensuring coherency" references above
-#if defined(WORKAROUND_MPC5777C)
+
+# See MPC5777C RM Rev 8 section 15.9.5.2.1 Interrupt with blocked priority
+#if defined(CPU_MPC5777C)
         se_b skip_disable_INT
 #endif
         portDISABLE_GLOBAL_INTERRUPTS           # Clear MSR[EE]
@@ -380,7 +384,9 @@ skip_disable_INT:
         portRESTORE_CRITICAL_NESTING_COUNT
         se_cmpi       r4, 0                     # Check if the nested critical section count is above zero
         se_bgt        1f                        # If it is, skip setting CPR to 0
-#if defined(WORKAROUND_MPC5777C)
+
+# See MPC5777C RM Rev 8 section 15.9.5.2.1 Interrupt with blocked priority
+#if defined(CPU_MPC5777C)
         se_b skip_clear_pri_ceiling
 #endif
         portCLEAR_INTERRUPT_PRIORITY_CEILING    # Else set CPR to 0
