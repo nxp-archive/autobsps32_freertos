@@ -19,9 +19,35 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-void* __VECTOR_RAM[1024] __attribute__ ((section ("interruptTable")));
+#include <stdint.h>
+#include "generic_timer.h"
+#include "gicv3.h"
+#include "FreeRTOSConfig.h"
 
-void vInitInterruptTable(int id, void* vector)
+extern void SysTick_Handler(void);
+extern void vInitInterruptTable(int, void*);
+
+#define TIMER_INT_ID        30
+
+void vUpdateTimer(void)
 {
-    __VECTOR_RAM[id] = vector;
+    uint64_t cnt_val = SYSTIMER_GET_CNTPCT;
+    uint32_t val, val2;
+    cnt_val += (uint64_t)OS_TICK;
+    val = cnt_val;
+    val2 = (cnt_val >> 32);
+    SYSTIMER_SET_CNTP_CVAL(val, val2);
+}
+
+void prvSetupTimerInterrupt(void)
+{
+    uint64_t cnt_val = SYSTIMER_GET_CNTPCT;
+    uint32_t val, val2;
+    cnt_val += (uint64_t)OS_TICK;
+    val = cnt_val;
+    val2 = (cnt_val >> 32);
+    SYSTIMER_SET_CNTP_CVAL(val, val2);
+    vInitInterruptTable(TIMER_INT_ID, SysTick_Handler);
+    SYSTIMER_SET_CNTP_CTL(SYSTIMER_GET_CNTP_CTL | ENABLE);
+    vGicEnableInterrupt(TIMER_INT_ID, 1);
 }

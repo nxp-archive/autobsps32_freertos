@@ -158,7 +158,7 @@ void vPortExitCritical( void )
         portENABLE_INTERRUPTS();
     }
 }
-extern void* InterruptsTable[];
+extern void* __VECTOR_RAM[];
 /*-----------------------------------------------------------*/
 void vPortInterruptDispatcher(void) __attribute__ (( naked ));
 void vPortInterruptDispatcher(void)
@@ -169,7 +169,7 @@ void vPortInterruptDispatcher(void)
     OSASM(" cmp r12,%0\t\n"::"i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ):);
     OSASM(" bhi osInt                                       \t\n"); /* OS interrupt */
     OSASM(" stmfd sp!, {r0-r2}                              \t\n"); /* save volatiles to IRQ stack, r12 & r14 already saved */
-    OSASM(" ldr r0, =InterruptsTable                        \t\n");
+    OSASM(" ldr r0, =__VECTOR_RAM                           \t\n");
     OSASM(" mrs r1, LR_svc                                  \t\n");
     OSASM(" mrs r2, SPSR_svc                                \t\n");
     OSASM(" mrs r3, SPSR                                    \t\n");
@@ -205,7 +205,7 @@ void vPortInterruptDispatcher(void)
     OSASM(" ldr r1, [r1]                                    \t\n");
     OSASM(" push {r1}                                       \t\n"); /* current task TCB to IRQ stack */
     OSASM(" 1:                                              \t\n"); /* prepare Call user handler */
-    OSASM(" ldr r0, =InterruptsTable                        \t\n");
+    OSASM(" ldr r0, =__VECTOR_RAM                           \t\n");
     OSASM(" mrs r1, LR_svc                                  \t\n");
     OSASM(" mrs r2, SPSR_svc                                \t\n");
     OSASM(" mrs r3, SPSR                                    \t\n");

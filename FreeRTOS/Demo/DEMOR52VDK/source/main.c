@@ -182,9 +182,7 @@ void SGI0_Handler(void)
     xResult = xEventGroupSetBitsFromISR( xEventGroup, 1, &xHigherPriorityTaskWoken );
 
     if( xResult != pdFAIL ) {
-        if (xHigherPriorityTaskWoken) {
-            port_YIELD_FROM_ISR();
-        }
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
     OSINTC_SET_ICC_SGI1R(1, 1);
 }
@@ -233,9 +231,7 @@ void Stm_Handler0(void)
     xResult = xEventGroupSetBitsFromISR( xEventGroup1, 1, &xHigherPriorityTaskWoken );
 
     if( xResult != pdFAIL ) {
-        if (xHigherPriorityTaskWoken) {
-            port_YIELD_FROM_ISR();
-        }
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 }
 

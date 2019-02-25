@@ -28,7 +28,7 @@
 #ifndef PORTMACRO_H
 #define PORTMACRO_H
 #include <stdint.h>
-#include "hw_system.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -190,7 +190,7 @@ portFORCE_INLINE static void vPortSetBASEPRI( uint32_t ulNewMaskValue )
 }
 /*-----------------------------------------------------------*/
 
-#define port_YIELD_FROM_ISR()               {                               \
+#define portYIELD_FROM_ISR(x)                if ((x)) {                     \
                                                 portDISABLE_INTERRUPTS();   \
                                                 vTaskSwitchContext();       \
                                                 portENABLE_INTERRUPTS();    \
