@@ -167,7 +167,7 @@ void vPortInterruptDispatcher(void)
     OSASM(" mrc p15, 0, r14, c12, c12, 0                    \t\n");    /* get interrupt id, r14 */
     OSASM(" mrc p15, 0, r12, c12, c11, 3                    \t\n"); /* get interrupt priority, r12 */
     OSASM(" cmp r12,%0\t\n"::"i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ):);
-    OSASM(" bhi osInt                                       \t\n"); /* OS interrupt */
+    OSASM(" bge osInt                                       \t\n"); /* OS interrupt */
     OSASM(" stmfd sp!, {r0-r2}                              \t\n"); /* save volatiles to IRQ stack, r12 & r14 already saved */
     OSASM(" ldr r0, =__VECTOR_RAM                           \t\n");
     OSASM(" mrs r1, LR_svc                                  \t\n");
