@@ -39,18 +39,14 @@ extern void vUpdateTimer(void);
 void vPortYield(void)
 {
     /** do not save R0, R1, R2, R3, R12 */
-    OSASM(" mrc p15, 0, r2, c4, c6, 0                       \t\n"); /* get the ICC_PMR */
-    OSASM(" mrs r3, cpsr                                    \t\n"); /* get the status */
-#if defined(__thumb__)
-    OSASM(" add r3, #0x20                                   \t\n");
-#endif
+    OSASM(" mrc p15, 0, r3, c4, c6, 0                       \t\n"); /* get the ICC_PMR */
     OSASM(" ldr r0, =pxCurrentTCB                           \t\n");
     OSASM(" ldr r1, [r0]                                    \t\n");
-    OSASM(" stmfd sp!, {r2-r11, lr}                         \t\n"); /* interrupt priority mask, status register and callee-save registers using task stack */
-    OSASM(" mov r2, #0                                      \t\n"); /* solicited */
+    OSASM(" stmfd sp!, {r3-r11, lr}                         \t\n"); /* interrupt priority mask and callee-save registers using task stack */
+    OSASM(" mov r2, #0                                      \t\n"); /* solicited = 0 */
     OSASM(" ldr r0, =uxCriticalNesting                      \t\n");
     OSASM(" ldr r3, [r0]                                    \t\n");
-    OSASM(" stmfd sp!, {r2,r3}                              \t\n"); /* solicited context switched and uxCriticalNesting*/
+    OSASM(" stmfd sp!, {r2,r3}                              \t\n"); /* solicited (0, CPSR) context switched and uxCriticalNesting*/
     OSASM(" str sp, [r1]                                    \t\n"); /* save task top of stack */
     OSASM(" mov r2, %0\t\n": : "i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ): );
     OSASM(" mcr p15, 0, r2, c4, c6, 0                       \t\n"); /* Write r2 into ICC_PMR, enable OS call */
@@ -58,17 +54,17 @@ void vPortYield(void)
     OSASM(" ldr r0, =pxCurrentTCB                           \t\n");
     OSASM(" ldr r0, [r0]                                    \t\n");
     OSASM(" ldr sp, [r0]                                    \t\n"); /* get new stack of the task */
-    OSASM(" ldmfd sp!, {r0-r11,lr}                          \t\n"); /* r0 - sol/unsol, r1 critical, r2 int mask, r3 cpsr */
+    OSASM(" ldmfd sp!, {r1-r11,lr}                          \t\n"); /* r1 - sol = 0/unsol = CPSR, r2 critical, r3 int mask */
     OSASM(" ldr r12, =uxCriticalNesting                     \t\n");
-    OSASM(" mcr p15, 0, r2, c4, c6, 0                       \t\n"); /* Write r2 into ICC_PMR, task mask level */
-    OSASM(" str r1, [r12]                                   \t\n"); /* save critical */
-    OSASM(" cmp r0, #0                                      \t\n");
+    OSASM(" mcr p15, 0, r3, c4, c6, 0                       \t\n"); /* Write r3 into ICC_PMR, task mask level */
+    OSASM(" str r3, [r12]                                   \t\n"); /* save critical */
+    OSASM(" cmp r1, #0                                      \t\n");
     OSASM(" beq 1f                                          \t\n"); /* go to solicited, 1: */
     OSASM(" mov r0, sp                                      \t\n"); /* prepare exit from interrupt, r0 contains user SP */
     OSASM(" cpsid i                                         \t\n"); /* disable interrupts */
     OSASM(" add sp, sp, #24                                 \t\n"); /* user stack unload r0 - r3, r12, r14 */
     OSASM(" cps #0x12                                       \t\n"); /* enter in IRQ mode */
-    OSASM(" msr spsr, r3                                    \t\n"); /* unsolicited */
+    OSASM(" msr spsr, r1                                    \t\n"); /* unsolicited (MOV R1 to spsr) */
     OSASM(" ldm r0, {r0-r3, r12, r14}                       \t\n"); /* get registers from user stack */
     OSASM(" subs pc, lr, #4                                 \t\n"); /* return from interrupt */
     OSASM(" 1:                                              \t\n");
@@ -81,14 +77,14 @@ void vPortStartFirstTask(void)
     OSASM(" ldr r0, =pxCurrentTCB                           \t\n");
     OSASM(" ldr r0, [r0]                                    \t\n");
     OSASM(" ldr sp, [r0]                                    \t\n"); /* get new stack of the task */
-    OSASM(" ldmfd sp!, {r0-r11,lr}                          \t\n"); /* r0 - sol/unsol, r1 critical, r2 int mask, r3 cpsr */
+    OSASM(" ldmfd sp!, {r1-r11,lr}                          \t\n"); /* r1 - sol(0)/unsol(CPSR), r2 critical, r3 int mask*/
     OSASM(" ldr r12, =uxCriticalNesting                     \t\n");
     OSASM(" mcr p15, 0, r2, c4, c6, 0                       \t\n"); /* Write r2 into ICC_PMR, task mask level */
-    OSASM(" str r1, [r12]                                   \t\n"); /* save critical */
+    OSASM(" str r2, [r12]                                   \t\n"); /* save critical */
     OSASM(" mov r0, sp                                      \t\n"); /* r0 contains user SP */
     OSASM(" add sp, sp, #24                                 \t\n"); /* unload user stack */
     OSASM(" cpsid i, 0x12                                   \t\n"); /* disable interrupts and enter to irq mode */
-    OSASM(" msr spsr, r3                                    \t\n"); /* unsolicited */
+    OSASM(" msr spsr, r1                                    \t\n"); /* unsolicited */
     OSASM(" ldm r0, {r0-r3, r12, r14}                       \t\n");
     OSASM(" subs pc, lr, #4                                 \t\n"); /* return from interrupt */
 }
@@ -115,14 +111,14 @@ StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t px
     *pxTopOfStack -- = (StackType_t)0x06060606;                /* R6 */
     *pxTopOfStack -- = (StackType_t)0x05050505;                /* R5 */
     *pxTopOfStack -- = (StackType_t)0x04040404;                /* R4 */
-#if defined(__thumb__)
-    *pxTopOfStack -- = (StackType_t)0x0000003f;                /* CPSR mode system, T32 */
-#else
-    *pxTopOfStack -- = (StackType_t)0x0000001f;                /* CPSR mode system, A32 */
-#endif
+
     *pxTopOfStack -- = (StackType_t)0x000000f8;                /* Task interrupt mask */
     *pxTopOfStack -- = (StackType_t)0;                         /* critical */
-    *pxTopOfStack = (StackType_t)0x00000001;                   /* unsolicited context */
+#if defined(__thumb__)
+    *pxTopOfStack = (StackType_t)0x0000003f;                /* CPSR mode system, T32 (unsolicited)*/
+#else
+    *pxTopOfStack = (StackType_t)0x0000001f;                /* CPSR mode system, A32 (unsolicited)*/
+#endif
 
     return pxTopOfStack;
 }
@@ -241,7 +237,7 @@ void vPortInterruptDispatcher(void)
     OSASM(" msr SPSR, r3                                    \t\n");
     OSASM(" mcr p15, 0, r14, c12, c12, 1                    \t\n"); /* End Of Interrupt */
     OSASM(" ldr r3, [r12]                                   \t\n");
-    OSASM(" subs r3, r3, #1                                 \t\n"); /* inc uxInterruptNested */
+    OSASM(" subs r3, r3, #1                                 \t\n"); /* dec uxInterruptNested */
     OSASM(" str r3, [r12]                                   \t\n"); /* save uxInterruptNested */
 #if defined(__thumb__)
     OSASM(" itt ne                                          \t\n");
@@ -265,42 +261,40 @@ void vPortInterruptDispatcher(void)
     OSASM(" msreq SP_usr, r1                                \t\n"); /* update user stack, no schedule */
     OSASM(" beq nothingToDo                                 \t\n");
 
-    OSASM(" mrc p15, 0, r2, c4, c6, 0                       \t\n");
-    OSASM(" mrs r3, spsr                                    \t\n");
+    OSASM(" mrc p15, 0, r3, c4, c6, 0                       \t\n"); /* get interrupt mask, r3 */
+
 #if defined(__thumb__)
     OSASM(" sub r0, #4                                      \t\n"); /* Space for LR_USR */
-    OSASM(" stmfd r0, {r2-r11}                              \t\n"); /* sr + int_mask + save registers r14_usr, old task */
+    OSASM(" stmfd r0, {r3-r11}                              \t\n"); /* int_mask + save registers r14_usr, old task */
     OSASM(" mrs r2, LR_usr                                  \t\n"); /* get user LINK to r2 */
     OSASM(" str r2, [r0]                                    \t\n"); /* save to user stack */
-    OSASM(" sub r0, r0, #40                                 \t\n"); /* update r0 */
+    OSASM(" sub r0, r0, #36                                 \t\n"); /* update r0 */
 #else
-    OSASM(" stmfd r0, {r2-r11, r14}^                        \t\n"); /* sr + int_mask + save registers r14_usr, old task */
-    OSASM(" sub r0, r0, #44                                 \t\n"); /* update r0 */
+    OSASM(" stmfd r0, {r3-r11, r14}^                        \t\n"); /* int_mask + save registers r14_usr, old task */
+    OSASM(" sub r0, r0, #40                                 \t\n"); /* update r0 */
 #endif
     OSASM(" ldr r3, =uxCriticalNesting                      \t\n");
-    
-    OSASM(" mov r2, #1                                      \t\n"); /* unsolicited */
-    OSASM(" ldr r3, [r3]                                    \t\n");
+    OSASM(" mrs r2, spsr                                    \t\n"); /* unsolicited (SPSR) to R2 */
+    OSASM(" ldr r3, [r3]                                    \t\n"); /* get critical */
     OSASM(" stmfd r0!, {r2, r3}                             \t\n"); /* write type of yield, and critical to user task stack */
     OSASM(" str r0, [r1]                                    \t\n"); /* save stack pointer to old task TCB */
     OSASM(" ldr r0, [r14]                                   \t\n"); /* get new task stack */
-    OSASM(" ldmfd r0!, {r2-r5}                              \t\n"); /* get switch type, critical, intmask and SR */
+    OSASM(" ldmfd r0!, {r2-r4}                              \t\n"); /* get switch type (0 or CPSR), critical, intmask */
     OSASM(" mcr p15, 0, r4, c4, c6, 0                       \t\n"); /* Write r4 into ICC_PMR, task mask level */
     OSASM(" ldr r4, =uxCriticalNesting                      \t\n");
-    OSASM(" msr spsr, r5                                    \t\n"); /* save spsr, unsolicited */
     OSASM(" str r3, [r4]                                    \t\n"); /* store critical */
     OSASM(" ldmfd r0!, {r4-r11, r14}                        \t\n"); /* Get saved regs + r14_usr to r14_irq */
-    OSASM(" cmp r2, #0                                      \t\n"); /* is solicited? */
+    OSASM(" cmp r2, #0                                      \t\n"); /* is solicited? solicited yield does not need a specific CPSR so, it can use the previous CPSR/SPSR */
 #if defined(__thumb__)
     OSASM(" itt eq                                          \t\n");
 #endif
-    OSASM(" msreq SP_usr, r0                                \t\n"); /* solicited update user stack */
+    OSASM(" msreq SP_usr, r0                                \t\n"); /* solicited, update user stack */
 #if defined(__thumb__)
     OSASM(" movseq pc, lr                                   \t\n"); /* exit from interrupt, solicited return, no need to subs */
 #else
     OSASM(" moveqs pc, lr                                   \t\n"); /* exit from interrupt, solicited return, no need to subs */
 #endif
-
+    OSASM(" msr spsr, r2                                    \t\n"); /* save spsr, unsolicited */
     OSASM(" add r1, r0, #24                                 \t\n");
     OSASM(" msr SP_usr, r1                                  \t\n"); /* update user stack register */
     OSASM(" msr LR_usr, r14                                 \t\n"); /* update user link register */
