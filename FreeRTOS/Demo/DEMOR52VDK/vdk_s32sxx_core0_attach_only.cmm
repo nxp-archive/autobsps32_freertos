@@ -34,9 +34,9 @@ v.w ui32_ms_cnt task_1 task_2 task_3 task_4 task_5 task_6 idle_task error_sync t
 ; increase trace buffer size
 trace.size 10485760.
 
-b.s el1_prefetch_exception
-b.s el1_abort_exception
-b.s el1_undefined_exception
+b.s prefetch_exception
+b.s abort_exception
+b.s undefined_exception
 
 ENDDO
 

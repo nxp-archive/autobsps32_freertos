@@ -1,3 +1,5 @@
+#instruction set selection
+iset := T32
 #cluster selection
 CLUSTER := 
 cluster := cluster0
@@ -31,11 +33,25 @@ LD := $(CrossToolDir)/bin/arm-none-eabi-ld.exe
 OSCFLAGS := -g -O3 -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall \
 			-I"$(OsPath)/Source/include" -I"$(OsPath)/Source/portable/GCC/ARM_CR52_GIC" \
 			-I"include" $(BOARDFLAG) $(CLUSTER)
-OSASFLAGS := -g -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard 
-LDFLAGS := -nostartfiles -T image.ld -Wl,-Map=$(OutDir)/image.map \
-			-L$(CrossToolDir)/arm-none-eabi/newlib/lib/v8-r/fpv5/hard -lc \
-			-L$(CrossToolDir)/lib/gcc/arm-none-eabi/6.3.1/v8-r/fpv5/hard -lgcc
+ifeq ($(iset), T32)
+	OSCFLAGS += -mthumb-interwork -mthumb 
+endif
+OSASFLAGS := -g -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard
+ifeq ($(iset), T32)
+	OSASFLAGS += -mthumb-interwork -mthumb 
+endif
 
+LDFLAGS := -nostartfiles -T image.ld -Wl,-Map=$(OutDir)/image.map
+ifeq ($(iset), T32)
+	LDFLAGS += -Wa,-mthumb -Wa,-mthumb-interwork \
+	-L$(CrossToolDir)/lib/gcc/arm-none-eabi/6.3.1/thumb/v8-r/fpv5/hard -lgcc \
+	-L$(CrossToolDir)/arm-none-eabi/newlib/lib/thumb/v8-r/fpv5/hard -lc
+endif
+
+ifeq ($(iset), A32)
+	LDFLAGS += -L$(CrossToolDir)/arm-none-eabi/newlib/lib/v8-r/fpv5/hard -lc \
+				-L$(CrossToolDir)/lib/gcc/arm-none-eabi/6.3.1/v8-r/fpv5/hard -lgcc
+endif
 OBJFILES_OS := $(OutDir)/tasks.o \
 			$(OutDir)/timers.o \
 			$(OutDir)/event_groups.o \
