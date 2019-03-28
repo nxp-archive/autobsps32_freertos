@@ -30,11 +30,17 @@ SECTIONS
         KEEP(*(.startup)) /* Startup code */
         . = ALIGN(4);
     } > OsInternalRAM
-    .interruptTable :
+    .handlers :
     {
         . = ALIGN(4);
-        KEEP(*(.interruptTable)) /* Startup code */
+        KEEP(*(.handlers)) /* IRQ handler, SVC handler */
         . = ALIGN(4);
+    } > OsInternalRAM
+    .interruptTable :
+    {
+        . = ALIGN(32);
+        KEEP(*(.interruptTable)) /* Interrupts Vector */
+        . = ALIGN(32);
     } > OsInternalRAM
     .text :
     {

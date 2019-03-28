@@ -166,7 +166,7 @@ void vPortExitCritical( void )
 }
 extern void* __VECTOR_RAM[];
 /*-----------------------------------------------------------*/
-void vPortInterruptDispatcher(void) __attribute__ (( naked ))  __attribute__((section(".interruptTable")));
+void vPortInterruptDispatcher(void) __attribute__ (( naked ))  __attribute__((section(".handlers")));
 void vPortInterruptDispatcher(void)
 {
     OSASM(" push {r3, r12, r14}                             \t\n"); /* save r12, r14 to interrupt stack */
@@ -330,7 +330,7 @@ void xPortSysTickHandler( void )
 }
 
 extern void SVC_Handler(unsigned long* info);
-void vPortSVCDispatcher(void) __attribute__ (( naked )) __attribute__((section(".interruptTable")));
+void vPortSVCDispatcher(void) __attribute__ (( naked )) __attribute__((section(".handlers")));
 void vPortSVCDispatcher(void)
 {
     OSASM(" stmfd r13!, {r0-r3, r12, r14}   \t\n"); /* save r0 - r3, r12, r14 to SVC stack */
