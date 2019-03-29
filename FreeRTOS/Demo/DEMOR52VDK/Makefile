@@ -29,6 +29,8 @@ OutDir := Output
 AS := $(CrossToolDir)/bin/arm-none-eabi-as.exe
 CC := $(CrossToolDir)/bin/arm-none-eabi-gcc.exe
 LD := $(CrossToolDir)/bin/arm-none-eabi-ld.exe
+CP := $(CrossToolDir)/bin/arm-none-eabi-objcopy.exe
+OD := $(CrossToolDir)/bin/arm-none-eabi-objdump.exe
 
 OSCFLAGS := -g -O3 -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall \
 			-I"$(OsPath)/Source/include" -I"$(OsPath)/Source/portable/GCC/ARM_CR52_GIC" \
@@ -96,3 +98,6 @@ make_dir:
 # Linking
 $(OutDir)/image.elf: $(OBJFILES)
 	$(CC) $(LDFLAGS) -o $@ $(OBJFILES)
+	$(CP) -S -I elf32-littlearm -O binary $(OutDir)/image.elf $(OutDir)/image.bin
+	$(OD) -m arm -Mforce-thumb --target=binary -D $(OutDir)/image.bin > $(OutDir)/image.asm
+	$(OD)  -D $(OutDir)/image.elf > $(OutDir)/image.S
