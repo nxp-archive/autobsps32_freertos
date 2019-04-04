@@ -26,7 +26,7 @@ OsPath ?= ../..
 OutDir := Output
 
 
-AS := $(CrossToolDir)/bin/arm-none-eabi-as.exe
+AS := $(CrossToolDir)/bin/arm-none-eabi-gcc.exe
 CC := $(CrossToolDir)/bin/arm-none-eabi-gcc.exe
 LD := $(CrossToolDir)/bin/arm-none-eabi-ld.exe
 CP := $(CrossToolDir)/bin/arm-none-eabi-objcopy.exe
@@ -38,7 +38,7 @@ OSCFLAGS := -g -O3 -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall \
 ifeq ($(iset), T32)
 	OSCFLAGS += -mthumb-interwork -mthumb 
 endif
-OSASFLAGS := -g -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard
+OSASFLAGS := -g -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -c -x assembler-with-cpp
 ifeq ($(iset), T32)
 	OSASFLAGS += -mthumb-interwork -mthumb 
 endif

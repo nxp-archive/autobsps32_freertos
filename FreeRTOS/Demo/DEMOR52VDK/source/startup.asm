@@ -23,6 +23,9 @@
     .extern vPortInterruptDispatcher
     .extern vPortSVCDispatcher
     .extern SystemInit
+#if defined(__thumb__)
+    .thumb
+#endif
     .align 5
     .section .startup,"ax"
     .globl Reset_Handler
