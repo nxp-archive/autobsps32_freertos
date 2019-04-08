@@ -57,7 +57,7 @@ void vPortYield(void)
     OSASM(" ldmfd sp!, {r1-r11,lr}                          \t\n"); /* r1 - sol = 0/unsol = CPSR, r2 critical, r3 int mask */
     OSASM(" ldr r12, =uxCriticalNesting                     \t\n");
     OSASM(" mcr p15, 0, r3, c4, c6, 0                       \t\n"); /* Write r3 into ICC_PMR, task mask level */
-    OSASM(" str r3, [r12]                                   \t\n"); /* save critical */
+    OSASM(" str r2, [r12]                                   \t\n"); /* save critical */
     OSASM(" cmp r1, #0                                      \t\n");
     OSASM(" beq 1f                                          \t\n"); /* go to solicited, 1: */
     OSASM(" mov r0, sp                                      \t\n"); /* prepare exit from interrupt, r0 contains user SP */
