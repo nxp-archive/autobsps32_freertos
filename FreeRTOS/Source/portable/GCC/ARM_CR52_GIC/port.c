@@ -247,7 +247,6 @@ void vPortInterruptDispatcher(void)
     OSASM(" ldmnefd sp!, {r0-r3, r12, r14}                  \t\n"); /* return from irq uxInterruptNested != 0 */
     OSASM(" subnes pc, lr, #4                               \t\n"); /* return from irq uxInterruptNested != 0 */
 #endif
-    
 
     OSASM(" mrs r0, SP_usr                                  \t\n"); /* get user stack to r0 */
     OSASM(" ldr r14, =pxCurrentTCB                          \t\n");
@@ -328,17 +327,21 @@ void vPortSVCDispatcher(void) __attribute__ (( naked )) __attribute__((section("
 void vPortSVCDispatcher(void)
 {
     OSASM(" stmfd r13!, {r0-r3, r12, r14}   \t\n"); /* save r0 - r3, r12, r14 to SVC stack */
+    OSASM(" mrc p15, 0, r0, c4, c6, 0       \t\n"); /* get interrupt priority, r0 */
+    OSASM(" mov r12,%0\t\n"::"i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ):);
+    OSASM(" push {r0}                       \t\n"); /* save current interrupt mask */
+    OSASM(" mcr p15, 0, r12, c4, c6, 0      \t\n"); /* do not allow OS interrupts to execute during SVC */
     OSASM(" cpsie i                         \t\n"); /* enable interrupts */
     OSASM(" mov r0, r13                     \t\n");
     OSASM(" ldr r3, =SVC_Handler            \t\n");
     OSASM(" cmp r3, #0                      \t\n");
 #if defined(__thumb__)
     OSASM(" it ne                           \t\n"); /* conditional prefix */
-    OSASM(" blxne r3                        \t\n"); /* call user svc handler */
-#else
-    OSASM(" blxne r3                        \t\n"); /* call user svc handler */
 #endif
+    OSASM(" blxne r3                        \t\n"); /* call user svc handler */
     OSASM(" cpsid i                         \t\n"); /* disable interrupts */
+    OSASM(" pop {r0}                        \t\n"); /* get previous saved interrupt mask */
+    OSASM(" mcr p15, 0, r0, c4, c6, 0       \t\n"); /* restore mask */
 #if defined(__thumb__)
     OSASM(" ldmfd r13!, {r0-r3, r12, r14}   \t\n"); /* restore r0 - r3, r12 from SVC stack */
     OSASM(" movs pc, lr                     \t\n");
