@@ -79,7 +79,7 @@ void vPortStartFirstTask(void)
     OSASM(" ldr sp, [r0]                                    \t\n"); /* get new stack of the task */
     OSASM(" ldmfd sp!, {r1-r11,lr}                          \t\n"); /* r1 - sol(0)/unsol(CPSR), r2 critical, r3 int mask*/
     OSASM(" ldr r12, =uxCriticalNesting                     \t\n");
-    OSASM(" mcr p15, 0, r2, c4, c6, 0                       \t\n"); /* Write r2 into ICC_PMR, task mask level */
+    OSASM(" mcr p15, 0, r3, c4, c6, 0                       \t\n"); /* Write r3 into ICC_PMR, task mask level */
     OSASM(" str r2, [r12]                                   \t\n"); /* save critical */
     OSASM(" mov r0, sp                                      \t\n"); /* r0 contains user SP */
     OSASM(" add sp, sp, #24                                 \t\n"); /* unload user stack */
