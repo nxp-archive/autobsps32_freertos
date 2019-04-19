@@ -1,0 +1,142 @@
+
+RESet
+SYStem.RESetOut
+WAIT 600ms
+ON.ERROR.continue
+SYStem.JtagClock ctck 20MHZ
+SYStem.CPU S32S247TV-R52
+SYStem.CONFIG CORE 2. 1.
+SYStem.CONFIG SLAVE OFF
+CORE.ASSIGN 1.
+TrOnchip.Set StepVector ON
+
+SYStem.Option DUALPORT ON
+System.MemAccess DAP
+System.CpuAccess Enable
+Trace.DISable
+ETM.OFF
+SYStem.Option TRST ON
+SYStem.Mode Attach
+break.direct
+
+; Switch to HVC mode, in case this is LoadAgain setup and there was a previous exception.
+Register.Set M 0x1A
+
+;GOSUB DisableHSEWatchdog   /* does not require for E2 chipset */
+GOSUB DisableSWTWatchdog
+;GOSUB InitSramEccViaCore
+GOSUB InitSramEccViaRAMCtrl
+
+
+;Load application on R52 core
+Data.Load.Elf Output\image.elf /GLOBTYPES
+;After loading the elf, the CPU is switched to ARM mode, switch back to Thumb.
+R.S T 1
+
+
+BREAK.RESET
+List.auto
+v.w ui32_ms_cnt task_1 task_2 task_3 task_4 task_5 task_6 idle_task error_sync timeout uxInterruptNested stmInt int2 svcCnt
+register /SpotLight
+
+Register.Set PC Reset_Handler
+b.s undefined_exception
+b.s prefetch_exception
+b.s abort_exception
+
+
+Mode.Hll
+WinPOS 0. 0. 116. 26.
+;WinCLEAR
+;WinPOS 0. 0. 116. 26.
+;List.auto
+
+MENU.ReProgram ~~/mens32s247tv.men
+TASK.CONFIG ~~/demo/arm/kernel/freertos/freertos.t32       ; load FreeRTOS awareness
+MENU.ReProgram ~~/demo/arm/kernel/freertos/freertos.men    ; load FreeRTOS menu
+
+ENDDO
+
+InitSramEccViaCore:
+(
+  ; The SRAM area is ECC protected by default and currently it is not clear,
+  ; if it is possible just to disable the check.
+  ; Additionally the memory need to be written 64 bit wise to init the ECC.
+  ; This cannot be done by the debugger, because the chip doesn't have an AXI-AP.
+  ; So we temporay enable the ITCM and assemble some code to initialize the SRAM.
+
+  PRINT "Init ECC protected RAM areas..."
+
+    
+  ; Enable A-TCM at address 0x20000000
+  PER.Set.simple C15:0x19 %Long 0x2000001B
+
+  ;Initialize the A-TCM using debugger
+  Data.Set HD:0x20000000--0x2000011F %LE %Long 0x00000000
+
+  ; Use same code to init the internal SRAM @0x34000000
+  ;Register.Init  
+  ;make sure we are in T32 mode
+  R.S T 1
+  Register.Set PC 0x20000000     ; Position of code inside ITCM
+  Register.Set R0 0x34000000     ; ECC SRAM start address
+  Register.Set R2 0x35000000     ; ECC SRAM end address
+  Register.Set R3 0x00000000     ; Value to be written
+
+  Data.Assemble ST:Register(PC) strd   r3,r3,[r0]
+  Data.Assemble ,               add    r0,r0,#8
+  Data.Assemble ,               cmp    r0,r2
+  Data.Assemble ,               beq    0x2000000e
+  Data.Assemble ,               b      0x20000000
+  Data.Assemble ,               bkpt   #0
+  b.s 0x2000000E
+  Go.direct
+  WAIT !RUN()
+  Break.direct
+
+  ; Disable ITCM
+  ;todo
+
+  RETURN
+)
+
+InitSramEccViaRAMCtrl:
+(
+  ;Initialize the RAM using OCPSRAMC[PRAMCR:INITREQ] controller.
+  PER.Set.simple AD:0x4019C00C %Long 0xFFFFFFFF ; clear all the errors, PRAMSR
+  PER.Set.simple AD:0x4019C008 %Long 0x3fff  ; range 0x34000000--0x343FFFFF
+  PER.Set.simple AD:0x4019C000 %Long 0x00000001
+  WHILE ((data.long(AD:0x4019C00C)&0x00000001)==0x00000000)      
+  (
+    ; wait for DMA DONE bit to be set
+  )
+  RETURN
+)
+
+
+DisableSWTWatchdog:
+(
+  ; disable the Watchdog
+  PRIVATE &index
+  	
+  ; Disable SWT0..3
+  &index=0
+  WHILE &index<4.
+  (
+    Data.Set SD:0x40100010+(&index*0x4000) %Long 0x0000C520
+    Data.Set SD:0x40100010+(&index*0x4000) %Long 0x0000D928
+    Data.Set SD:0x40100000+(&index*0x4000) %Long 0xFF000000
+    &index=&index+1
+  )
+  
+  ; Disable SWT0..3
+  &index=0
+  WHILE &index<4.
+  (
+    Data.Set SD:0x40200010+(&index*0x4000) %Long 0x0000C520
+    Data.Set SD:0x40200010+(&index*0x4000) %Long 0x0000D928
+    Data.Set SD:0x40200000+(&index*0x4000) %Long 0xFF000000
+    &index=&index+1
+  )
+  	RETURN
+)

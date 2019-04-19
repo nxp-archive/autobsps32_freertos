@@ -96,6 +96,7 @@ reset_exception:
     eret                            /* jump to e1_code */
 
 e1_code:
+    /* b e1_code */
 
     /* set vtor */
     ldr r0, =vector_table
@@ -122,6 +123,134 @@ e1_code:
     /* call system initialization first */
     ldr r0, =SystemInit
     blx r0
+
+    /* Configure MPU */
+    /* Region 0 */
+    mov r2, #0
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 0
+    ldr r3, =0xFFFFFFE0 /* clear SH bit, clear permission bits, clear XN bits*/
+    and r2, r3
+    mov r3, #((1<<1))
+    orr r2, r3
+    mov r3, #0x0
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 0
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #0x0E
+    and r2, r3
+    mov r3, #((1<<1))
+    orr r2, r3
+    movw r3, #0xFFC0
+    movt r3, #0x34FF
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+
+    mov r2, #0
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #1
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+
+    /* Region 1 */
+    mov r2, #1
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 0
+    ldr r3, =0xFFFFFFE0 /* clear SH bit, clear permission bits, clear XN bits*/
+    and r2, r3
+    mov r3, #((1<<1))
+    orr r2, r3
+    movw r3, #0x0
+    movt r3, #0x3500
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 0
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #0x0E
+    and r2, r3
+    mov r3, #((1<<1))
+    orr r2, r3
+    movw r3, #0xFFC0
+    movt r3, #0x37FF
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+
+    mov r2, #1
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #1
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+
+    /* Region 2 */
+    mov r2, #2
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 0
+    ldr r3, =0xFFFFFFE0 /* clear SH bit, clear permission bits, clear XN bits*/
+    and r2, r3
+    mov r3, #((1<<1))
+    orr r2, r3
+    movw r3, #0x0
+    movt r3, #0x3802
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 0
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #0x0E
+    and r2, r3
+    mov r3, #((7<<1))
+    orr r2, r3
+    movw r3, #0xFFC0
+    movt r3, #0x39FF
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+
+    mov r2, #2
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #1
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+
+    /* Region 3 */
+    mov r2, #3
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 0
+    ldr r3, =0xFFFFFFE0 /* clear SH bit, clear permission bits, clear XN bits*/
+    and r2, r3
+    mov r3, #((1<<1))
+    orr r2, r3
+    movw r3, #0x0
+    movt r3, #0x4000
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 0
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #0x0E
+    and r2, r3
+    mov r3, #((3<<1))
+    orr r2, r3
+    movw r3, #0xFFC0
+    movt r3, #0xFFFF
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+
+    mov r2, #3
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #1
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+
+    /* Enable MPU */
+    movw r2, #0x8AA4
+    movt r2, #0x0009
+    mcr p15, 0, r2, c10, c2, 0
+    movw r2, #0x48E0
+    movt r2, #0x44E0
+    mcr p15, 0, r2, c10, c2, 1
+    mrc p15, 0, r2, c1, c0, 0
+    orr r2, r3
+    mcr p15, 0, r2, c1, c0, 0
+
     /* Zero fill the bss segment */
     ldr  r0, =__bss_start__
     ldr  r1, =__bss_end__
