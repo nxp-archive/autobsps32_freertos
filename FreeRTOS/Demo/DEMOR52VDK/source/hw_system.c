@@ -26,9 +26,11 @@
 unsigned long SystemCoreClock = 100000000UL;
 
 #define BASE_ADDRESS_MC_ME      0x40088000u
+#define BASE_ADDRESS_FXOSC      0x40050000u
 #define MC_ME_CTL_KEY           *(volatile unsigned int*)(BASE_ADDRESS_MC_ME + 0x000u)
 #define MC_ME_PRTN0_PCONF       *(volatile unsigned int*)(BASE_ADDRESS_MC_ME + 0x100u)
 #define MC_ME_PRTN0_PUPD        *(volatile unsigned int*)(BASE_ADDRESS_MC_ME + 0x104u)
+#define FXOSC_CTRL              *(volatile unsigned int*)(BASE_ADDRESS_FXOSC + 0x000u)
 
 /*
  * system initialization : system clock, interrupt router ...
@@ -50,6 +52,9 @@ void SystemInit(void)
     MC_ME_PRTN0_PCONF = 0x1; /* PCE */
     MC_ME_CTL_KEY = 0x5AF0;
     MC_ME_CTL_KEY = 0xA50F;
+
+    /* Enable FXOSC */
+    FXOSC_CTRL |= 0x1;
 }
 
 
