@@ -19,6 +19,9 @@ endif
 ifeq ($(board),fpga)
 BOARDFLAG += -DOS_FOR_FPGA 
 endif
+ifeq ($(board),s32s_tv)
+BOARDFLAG += -DOS_FOR_S32S_TV
+endif
 #Path to Tool Directory
 CrossToolDir ?= C:/tools/gcc-6.3-arm32-eabi
 #Path to FreeRtos Directory
@@ -38,7 +41,7 @@ OSCFLAGS := -g -O3 -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall \
 ifeq ($(iset), T32)
 	OSCFLAGS += -mthumb-interwork -mthumb 
 endif
-OSASFLAGS := -g -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -c -x assembler-with-cpp
+OSASFLAGS := -g -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -c -x assembler-with-cpp $(BOARDFLAG) $(CLUSTER)
 ifeq ($(iset), T32)
 	OSASFLAGS += -mthumb-interwork -mthumb 
 endif

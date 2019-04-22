@@ -60,6 +60,15 @@ abort_exception:
 fiq_exception:
     b .
 
+#if defined(OS_FOR_S32S_TV)
+.globl Errors_read
+Errors_read:
+    mrc p15, 0, r0, c5, c0, 0 /* DFSR */
+    mrc p15, 0, r1, c5, c0, 1 /* IFSR */
+    mrc p15, 0, r2, c5, c1, 0 /* ADFSR */
+    mrc p15, 0, r3 ,c5, c1, 1 /* AIFSR */
+#endif
+
 reset_exception:
     /* ARMv8-R cores are in EL2 (hypervisor mode) after reset, and we need */
     /* to first descend to EL1 (supervisor mode) before the traditional SP */
@@ -96,7 +105,6 @@ reset_exception:
     eret                            /* jump to e1_code */
 
 e1_code:
-    /* b e1_code */
 
     /* set vtor */
     ldr r0, =vector_table
@@ -123,7 +131,7 @@ e1_code:
     /* call system initialization first */
     ldr r0, =SystemInit
     blx r0
-
+#if defined(OS_FOR_S32S_TV)
     /* Configure MPU */
     /* Region 0 */
     mov r2, #0
@@ -250,7 +258,7 @@ e1_code:
     mrc p15, 0, r2, c1, c0, 0
     orr r2, r3
     mcr p15, 0, r2, c1, c0, 0
-
+#endif
     /* Zero fill the bss segment */
     ldr  r0, =__bss_start__
     ldr  r1, =__bss_end__
