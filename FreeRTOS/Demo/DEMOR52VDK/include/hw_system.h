@@ -33,8 +33,16 @@ extern "C"
 #define SYS_REG8(address)       ( *(volatile char  *)(address) ) /**<   8-bit register */
 
 /** STM */
+#define ENABLE                              (1 << 0)
+#define FREEZE                              (1 << 1) /* Allows the timer counter to be stopped when the device enters Debug mode. */
+
 #define STM_BASE(id)                        (0x4011C000 + (id) * 0x4000)
-#define STM_ENABLE(id, div)                 (SYS_REG32(STM_BASE(id)) = 3 + ((0xff & (div)) << 8))
+#if defined(OS_FOR_S32S_TV)
+#define STM_ENABLE(id, div)                 (SYS_REG32(STM_BASE(id)) = ENABLE + ((0xff & (div)) << 8))
+#else
+#define STM_ENABLE(id, div)                 (SYS_REG32(STM_BASE(id)) = (ENABLE | FREEZE) + \                                                                            ((0xff & (div)) << 8))
+#endif
+
 #define STM_ENABLE_CHAN(id, chan, cmp)      {                                                                       \
                                                 SYS_REG32(STM_BASE(id) + 0x10 * (chan) + 0x14) = 1;                 \
                                                 SYS_REG32(STM_BASE(id) + 0x10 * (chan) + 0x18) = (cmp);             \

@@ -95,7 +95,7 @@ reset_exception:
     mrs r0, spsr_hyp
     mov r1, #0x1F
     mvn r1, r1
-    mov r2, #0x13
+    mov r2, #0xd3
 #if defined (__thumb__)
     add r2, #0x20                   /* enable thumb mode */
 #endif
@@ -249,7 +249,7 @@ e1_code:
     mcr p15, 0, r2, c6, c3, 1
 
     /* Enable MPU */
-    movw r2, #0x8AA4
+    movw r2, #0x44A4
     movt r2, #0x0009
     mcr p15, 0, r2, c10, c2, 0
     movw r2, #0x48E0

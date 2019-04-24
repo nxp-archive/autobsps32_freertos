@@ -63,8 +63,8 @@ void vPortYield(void)
     OSASM(" mov r0, sp                                      \t\n"); /* prepare exit from interrupt, r0 contains user SP */
     OSASM(" cpsid i                                         \t\n"); /* disable interrupts */
     OSASM(" add sp, sp, #24                                 \t\n"); /* user stack unload r0 - r3, r12, r14 */
+    OSASM(" msr spsr_irq, r1                                \t\n"); /* unsolicited (MOV R1 to spsr) */
     OSASM(" cps #0x12                                       \t\n"); /* enter in IRQ mode */
-    OSASM(" msr spsr, r1                                    \t\n"); /* unsolicited (MOV R1 to spsr) */
     OSASM(" ldm r0, {r0-r3, r12, r14}                       \t\n"); /* get registers from user stack */
     OSASM(" subs pc, lr, #4                                 \t\n"); /* return from interrupt */
     OSASM(" 1:                                              \t\n");
@@ -74,6 +74,7 @@ void vPortYield(void)
 void vPortStartFirstTask(void) __attribute__ (( naked ));
 void vPortStartFirstTask(void)
 {
+    OSASM(" cpsid ia                                        \t\n"); /* disable interrupts */
     OSASM(" ldr r0, =pxCurrentTCB                           \t\n");
     OSASM(" ldr r0, [r0]                                    \t\n");
     OSASM(" ldr sp, [r0]                                    \t\n"); /* get new stack of the task */
@@ -83,8 +84,8 @@ void vPortStartFirstTask(void)
     OSASM(" str r2, [r12]                                   \t\n"); /* save critical */
     OSASM(" mov r0, sp                                      \t\n"); /* r0 contains user SP */
     OSASM(" add sp, sp, #24                                 \t\n"); /* unload user stack */
-    OSASM(" cpsid i, 0x12                                   \t\n"); /* disable interrupts and enter to irq mode */
-    OSASM(" msr spsr, r1                                    \t\n"); /* unsolicited */
+    OSASM(" msr spsr_irq, r1                                \t\n"); /* unsolicited (MOV R1 to spsr) */
+    OSASM(" cps 0x12                                        \t\n"); /* disable interrupts and enter to irq mode */
     OSASM(" ldm r0, {r0-r3, r12, r14}                       \t\n");
     OSASM(" subs pc, lr, #4                                 \t\n"); /* return from interrupt */
 }
@@ -115,9 +116,9 @@ StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t px
     *pxTopOfStack -- = (StackType_t)0x000000f8;                /* Task interrupt mask */
     *pxTopOfStack -- = (StackType_t)0;                         /* critical */
 #if defined(__thumb__)
-    *pxTopOfStack = (StackType_t)0x0000003f;                /* CPSR mode system, T32 (unsolicited)*/
+    *pxTopOfStack = (StackType_t)0x0000013f;                /* CPSR mode system, T32 (unsolicited)*/
 #else
-    *pxTopOfStack = (StackType_t)0x0000001f;                /* CPSR mode system, A32 (unsolicited)*/
+    *pxTopOfStack = (StackType_t)0x0000011f;                /* CPSR mode system, A32 (unsolicited)*/
 #endif
 
     return pxTopOfStack;
