@@ -69,6 +69,34 @@ Errors_read:
     mrc p15, 0, r3 ,c5, c1, 1 /* AIFSR */
 #endif
 
+.macro MPU_region   region start end attribute
+    mov r2, #\region
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 0
+    ldr r3, =0xFFFFFFE0 /* clear SH bit, clear permission bits, clear XN bits*/
+    and r2, r3
+    mov r3, #((1<<1))
+    orr r2, r3
+    ldr r3, =\start
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 0
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #0x0E
+    and r2, r3
+    mov r3, #((\attribute<<1))
+    orr r2, r3
+    ldr r3, =\end
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+
+    mov r2, #\region
+    mcr p15, 0, r2, c6, c2, 1
+    mrc p15, 0, r2, c6, c3, 1
+    mov r3, #1
+    orr r2, r3
+    mcr p15, 0, r2, c6, c3, 1
+.endm
+
 reset_exception:
     /* ARMv8-R cores are in EL2 (hypervisor mode) after reset, and we need */
     /* to first descend to EL1 (supervisor mode) before the traditional SP */
@@ -87,6 +115,20 @@ reset_exception:
     mov r10, r0
     mov r11, r0
     mov r12, r0
+
+#ifndef __thumb__
+    ldr r0, =0x00000000
+    mrc p15, 4, r0, c1, c0, 0       ;#read HSCTLR
+    mvn r1,#0x40000000              ;#Mask TE with 0
+    and r0, r1
+    mcr p15, 4, r0, c1, c0, 0       ;#write HSCTLR
+
+    ldr r0, =0x00000000
+    mrc p15, 0, r0, c1, c0, 0       ;#read SCTLR
+    mvn r1,#0x40000000              ;#Mask TE with 0
+    and r0, r1
+    mcr p15, 0, r0, c1, c0, 0       ;#write SCTLR
+#endif
 
     ldr r0, =0xffff
     mcr p15, 4, r0, c1, c0, 1       /* Write R0 to HACTLR */
@@ -128,134 +170,32 @@ e1_code:
     orr r0, r1
     mcr p15, 0, r0, c1, c0, 0            /* Write R0 to SCTLR */
 
+
     /* call system initialization first */
     ldr r0, =SystemInit
     blx r0
 #if defined(OS_FOR_S32S_TV)
     /* Configure MPU */
     /* Region 0 */
-    mov r2, #0
-    mcr p15, 0, r2, c6, c2, 1
-    mrc p15, 0, r2, c6, c3, 0
-    ldr r3, =0xFFFFFFE0 /* clear SH bit, clear permission bits, clear XN bits*/
-    and r2, r3
-    mov r3, #((1<<1))
-    orr r2, r3
-    mov r3, #0x0
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 0
-    mrc p15, 0, r2, c6, c3, 1
-    mov r3, #0x0E
-    and r2, r3
-    mov r3, #((1<<1))
-    orr r2, r3
-    movw r3, #0xFFC0
-    movt r3, #0x34FF
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 1
-
-    mov r2, #0
-    mcr p15, 0, r2, c6, c2, 1
-    mrc p15, 0, r2, c6, c3, 1
-    mov r3, #1
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 1
+    MPU_region 0 0 0x34FFFFC0 1
 
     /* Region 1 */
-    mov r2, #1
-    mcr p15, 0, r2, c6, c2, 1
-    mrc p15, 0, r2, c6, c3, 0
-    ldr r3, =0xFFFFFFE0 /* clear SH bit, clear permission bits, clear XN bits*/
-    and r2, r3
-    mov r3, #((1<<1))
-    orr r2, r3
-    movw r3, #0x0
-    movt r3, #0x3500
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 0
-    mrc p15, 0, r2, c6, c3, 1
-    mov r3, #0x0E
-    and r2, r3
-    mov r3, #((1<<1))
-    orr r2, r3
-    movw r3, #0xFFC0
-    movt r3, #0x37FF
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 1
-
-    mov r2, #1
-    mcr p15, 0, r2, c6, c2, 1
-    mrc p15, 0, r2, c6, c3, 1
-    mov r3, #1
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 1
+    MPU_region 1 0x35000000 0x37FFFFC0 1
 
     /* Region 2 */
-    mov r2, #2
-    mcr p15, 0, r2, c6, c2, 1
-    mrc p15, 0, r2, c6, c3, 0
-    ldr r3, =0xFFFFFFE0 /* clear SH bit, clear permission bits, clear XN bits*/
-    and r2, r3
-    mov r3, #((1<<1))
-    orr r2, r3
-    movw r3, #0x0
-    movt r3, #0x3802
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 0
-    mrc p15, 0, r2, c6, c3, 1
-    mov r3, #0x0E
-    and r2, r3
-    mov r3, #((7<<1))
-    orr r2, r3
-    movw r3, #0xFFC0
-    movt r3, #0x39FF
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 1
-
-    mov r2, #2
-    mcr p15, 0, r2, c6, c2, 1
-    mrc p15, 0, r2, c6, c3, 1
-    mov r3, #1
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 1
+    MPU_region 2 0x38020000 0x39FFFFC0 7
 
     /* Region 3 */
-    mov r2, #3
-    mcr p15, 0, r2, c6, c2, 1
-    mrc p15, 0, r2, c6, c3, 0
-    ldr r3, =0xFFFFFFE0 /* clear SH bit, clear permission bits, clear XN bits*/
-    and r2, r3
-    mov r3, #((1<<1))
-    orr r2, r3
-    movw r3, #0x0
-    movt r3, #0x4000
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 0
-    mrc p15, 0, r2, c6, c3, 1
-    mov r3, #0x0E
-    and r2, r3
-    mov r3, #((3<<1))
-    orr r2, r3
-    movw r3, #0xFFC0
-    movt r3, #0xFFFF
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 1
-
-    mov r2, #3
-    mcr p15, 0, r2, c6, c2, 1
-    mrc p15, 0, r2, c6, c3, 1
-    mov r3, #1
-    orr r2, r3
-    mcr p15, 0, r2, c6, c3, 1
+    MPU_region 3 0x40000000 0xFFFFFFC0 3
 
     /* Enable MPU */
     movw r2, #0x44A4
     movt r2, #0x0009
     mcr p15, 0, r2, c10, c2, 0
-    movw r2, #0x48E0
-    movt r2, #0x44E0
+    ldr r2, =0x44E048E0
     mcr p15, 0, r2, c10, c2, 1
     mrc p15, 0, r2, c1, c0, 0
+    mov r3, #1
     orr r2, r3
     mcr p15, 0, r2, c1, c0, 0
 #endif
@@ -284,5 +224,3 @@ e1_code:
 .equ Stack_Size, 0x1000
 #endif
 .space Stack_Size
-
-
