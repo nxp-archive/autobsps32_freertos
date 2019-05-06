@@ -43,7 +43,7 @@ volatile uint32_t svcCnt = 0;
 #if configUSE_IDLE_HOOK
 void vApplicationIdleHook(void) {
     idle_task ++;
-    OSASM(" wfi                     \t\n");
+//    OSASM(" wfi                     \t\n");
 }
 #endif
 
@@ -226,7 +226,7 @@ void Stm_Handler0(void)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE, xResult = pdFAIL;
 
-    STM_UPDATE_CHAN(0, 0, ((OS_TICK >> 4) + (stmInt[0] & 0xfff)));
+    STM_UPDATE_CHAN(0, 0, ((OS_TICK >> 2) + (stmInt[0] & 0xfff)));
     stmInt[0] ++;
     xResult = xEventGroupSetBitsFromISR( xEventGroup1, 1, &xHigherPriorityTaskWoken );
 
@@ -237,23 +237,23 @@ void Stm_Handler0(void)
 
 void Stm_Handler1(void)
 {
-    STM_UPDATE_CHAN(1, 0, ((OS_TICK >> 4) + (stmInt[1] & 0xfff)));
+    STM_UPDATE_CHAN(1, 0, ((OS_TICK >> 2) + (stmInt[1] & 0xfff)));
     stmInt[1] ++;
 }
 
 void Stm_Handler2(void)
 {
-    STM_UPDATE_CHAN(2, 0, ((OS_TICK >> 4) + (stmInt[2] & 0xfff)));
+    STM_UPDATE_CHAN(2, 0, ((OS_TICK >> 2) + (stmInt[2] & 0xfff)));
     stmInt[2] ++;
 }
 
-TimerCfg_t stm0 = {0, 0, (OS_TICK >> 4) + (OS_TICK >> 6), 0};
+TimerCfg_t stm0 = {0, 0, (OS_TICK >> 2) + (OS_TICK >> 6), 0};
 InterruptCfg_t intStm0 = {(void*)Stm_Handler0, 3};
 
-TimerCfg_t stm1 = {1, 0, (OS_TICK >> 4) + (OS_TICK >> 5), 0};
+TimerCfg_t stm1 = {1, 0, (OS_TICK >> 2) + (OS_TICK >> 5), 0};
 InterruptCfg_t intStm1 = {(void*)Stm_Handler1, 4};
 
-TimerCfg_t stm2 = {2, 0, (OS_TICK >> 4) + (OS_TICK >> 5), 0};
+TimerCfg_t stm2 = {2, 0, (OS_TICK >> 2) + (OS_TICK >> 5), 0};
 InterruptCfg_t intStm2 = {(void*)Stm_Handler2, 11};
 
 int main(void)

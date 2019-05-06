@@ -48,8 +48,10 @@ void vPortYield(void)
     OSASM(" ldr r3, [r0]                                    \t\n");
     OSASM(" stmfd sp!, {r2,r3}                              \t\n"); /* solicited (0, CPSR) context switched and uxCriticalNesting*/
     OSASM(" str sp, [r1]                                    \t\n"); /* save task top of stack */
+    OSASM(" cpsid  i                                        \t\n");
     OSASM(" mov r2, %0\t\n": : "i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ): );
-    OSASM(" mcr p15, 0, r2, c4, c6, 0                       \t\n"); /* Write r2 into ICC_PMR, enable OS call */
+    OSASM(" mcr p15, 0, r2, c4, c6, 0                       \t\n"); /* Write r2 into ICC_PMR, disable OS interrupts */
+    OSASM(" cpsie  i                                        \t\n");
     OSASM(" bl vTaskSwitchContext                           \t\n");
     OSASM(" ldr r0, =pxCurrentTCB                           \t\n");
     OSASM(" ldr r0, [r0]                                    \t\n");
@@ -85,7 +87,7 @@ void vPortStartFirstTask(void)
     OSASM(" mov r0, sp                                      \t\n"); /* r0 contains user SP */
     OSASM(" add sp, sp, #24                                 \t\n"); /* unload user stack */
     OSASM(" msr spsr_irq, r1                                \t\n"); /* unsolicited (MOV R1 to spsr) */
-    OSASM(" cps 0x12                                        \t\n"); /* disable interrupts and enter to irq mode */
+    OSASM(" cps 0x12                                        \t\n"); /* enter to irq mode */
     OSASM(" ldm r0, {r0-r3, r12, r14}                       \t\n");
     OSASM(" subs pc, lr, #4                                 \t\n"); /* return from interrupt */
 }
@@ -167,6 +169,17 @@ void vPortInterruptDispatcher(void) __attribute__ (( naked ))  __attribute__((se
 void vPortInterruptDispatcher(void)
 {
     OSASM(" push {r3, r12, r14}                             \t\n"); /* save r12, r14 to interrupt stack */
+#if 0
+/** debug **/
+    OSASM(" ldr r3, =0x340052dd                             \t\n");
+    OSASM(" mrs r12, LR_usr                                 \t\n");
+    OSASM(" cmp r3, r12                                     \t\n");
+    OSASM(" bne 1f                                          \t\n");
+    OSASM(" mrc p15, 0, r3, c4, c6, 0                       \t\n"); /* get the ICC_PMR */
+    OSASM(" nop                                             \t\n");
+    OSASM(" 1:                                              \t\n");
+/** end debug **/
+#endif
     OSASM(" mrc p15, 0, r14, c12, c12, 0                    \t\n"); /* get interrupt id, r14 */
     OSASM(" mrc p15, 0, r12, c12, c11, 3                    \t\n"); /* get interrupt priority, r12 */
     OSASM(" cmp r12,%0\t\n"::"i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ):);
@@ -175,7 +188,7 @@ void vPortInterruptDispatcher(void)
     OSASM(" ldr r0, =__VECTOR_RAM                           \t\n");
     OSASM(" mrs r1, LR_svc                                  \t\n");
     OSASM(" mrs r2, SPSR_svc                                \t\n");
-    OSASM(" mrs r3, SPSR                                    \t\n");
+    OSASM(" mrs r3, SPSR_irq                                \t\n");
     OSASM(" push {r1, r2, r3, r14}                          \t\n"); /* save: LR_svc, SPSR_svc, SPSR_irq and the interrupt ID */
     OSASM(" ldr r2, [r0, r14, lsl #2]                       \t\n"); /* get user interrupt vector */
     OSASM(" cpsie i, #0x13                                  \t\n"); /* enable interrupts and enter to svc mode */
@@ -188,7 +201,7 @@ void vPortInterruptDispatcher(void)
     OSASM(" pop {r1, r2, r3, r14}                           \t\n"); /* restore: LR_svc, SPSR_svc, SPSR_irq and the interrupt ID */
     OSASM(" msr LR_svc, r1                                  \t\n");
     OSASM(" msr SPSR_svc, r2                                \t\n");
-    OSASM(" msr SPSR, r3                                    \t\n");
+    OSASM(" msr SPSR_irq, r3                                \t\n");
     OSASM(" mcr p15, 0, r14, c12, c12, 1                    \t\n"); /* End Of Interrupt */
     OSASM(" ldmfd sp!, {r0-r3, r12, r14}                    \t\n"); /* restore user registers */
     OSASM(" subs pc, lr, #4                                 \t\n"); /* return from irq */
@@ -220,7 +233,7 @@ void vPortInterruptDispatcher(void)
     OSASM(" ldr r0, =__VECTOR_RAM                           \t\n");
     OSASM(" mrs r1, LR_svc                                  \t\n");
     OSASM(" mrs r2, SPSR_svc                                \t\n");
-    OSASM(" mrs r3, SPSR                                    \t\n");
+    OSASM(" mrs r3, SPSR_irq                                    \t\n");
     OSASM(" push {r1, r2, r3, r14}                          \t\n"); /* save: LR_svc, SPSR_svc, SPSR_irq and the interrupt ID */
     OSASM(" ldr r2, [r0, r14, lsl #2]                       \t\n");
     OSASM(" cpsie i, #0x13                                  \t\n"); /* enable interrupts, go to svc mode */
@@ -235,7 +248,7 @@ void vPortInterruptDispatcher(void)
     OSASM(" ldr r12, =uxInterruptNested                     \t\n");
     OSASM(" msr LR_svc, r1                                  \t\n");
     OSASM(" msr SPSR_svc, r2                                \t\n");
-    OSASM(" msr SPSR, r3                                    \t\n");
+    OSASM(" msr SPSR_irq, r3                                \t\n");
     OSASM(" mcr p15, 0, r14, c12, c12, 1                    \t\n"); /* End Of Interrupt */
     OSASM(" ldr r3, [r12]                                   \t\n");
     OSASM(" subs r3, r3, #1                                 \t\n"); /* dec uxInterruptNested */
@@ -274,7 +287,7 @@ void vPortInterruptDispatcher(void)
     OSASM(" sub r0, r0, #40                                 \t\n"); /* update r0 */
 #endif
     OSASM(" ldr r3, =uxCriticalNesting                      \t\n");
-    OSASM(" mrs r2, spsr                                    \t\n"); /* unsolicited (SPSR) to R2 */
+    OSASM(" mrs r2, spsr_irq                                \t\n"); /* unsolicited (SPSR) to R2 */
     OSASM(" ldr r3, [r3]                                    \t\n"); /* get critical */
     OSASM(" stmfd r0!, {r2, r3}                             \t\n"); /* write type of yield, and critical to user task stack */
     OSASM(" str r0, [r1]                                    \t\n"); /* save stack pointer to old task TCB */
@@ -286,15 +299,18 @@ void vPortInterruptDispatcher(void)
     OSASM(" ldmfd r0!, {r4-r11, r14}                        \t\n"); /* Get saved regs + r14_usr to r14_irq */
     OSASM(" cmp r2, #0                                      \t\n"); /* is solicited? solicited yield does not need a specific CPSR so, it can use the previous CPSR/SPSR */
 #if defined(__thumb__)
-    OSASM(" itt eq                                          \t\n");
+    OSASM(" itttt eq                                        \t\n");
 #endif
     OSASM(" msreq SP_usr, r0                                \t\n"); /* solicited, update user stack */
 #if defined(__thumb__)
+    OSASM(" movweq r2, 0x13f                                \t\n");
+    OSASM(" msreq spsr_irq, r2                              \t\n");
+
     OSASM(" movseq pc, lr                                   \t\n"); /* exit from interrupt, solicited return, no need to subs */
 #else
     OSASM(" moveqs pc, lr                                   \t\n"); /* exit from interrupt, solicited return, no need to subs */
 #endif
-    OSASM(" msr spsr, r2                                    \t\n"); /* save spsr, unsolicited */
+    OSASM(" msr spsr_irq, r2                                \t\n"); /* save spsr, unsolicited */
     OSASM(" add r1, r0, #24                                 \t\n");
     OSASM(" msr SP_usr, r1                                  \t\n"); /* update user stack register */
     OSASM(" msr LR_usr, r14                                 \t\n"); /* update user link register */
