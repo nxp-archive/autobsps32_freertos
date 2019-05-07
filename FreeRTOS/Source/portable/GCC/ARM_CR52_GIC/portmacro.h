@@ -152,9 +152,7 @@ uint32_t ulNewBASEPRI;
 	__asm volatile
 	(
 		"	mov %0, %1												\n"	\
-		"	cpsid i													\n" \
 		"	mcr p15, 0, %0, c4, c6, 0								\n" \
-		"	cpsie i													\n" \
 		:"=r" (ulNewBASEPRI) : "i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ) : "memory"
 	);
 }
@@ -169,14 +167,10 @@ uint32_t ulOriginalBASEPRI, ulNewBASEPRI;
 	(
 		"	mrc p15, 0, %0, c4, c6, 0								\n" \
 		"	mov %1, %2												\n"	\
-		"	cpsid i													\n" \
 		"	mcr p15, 0, %1, c4, c6, 0								\n" \
-		"	cpsie i													\n" \
 		:"=r" (ulOriginalBASEPRI), "=r" (ulNewBASEPRI) : "i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ) : "memory"
 	);
 
-	/* This return will not be reached but is necessary to prevent compiler
-	warnings. */
 	return ulOriginalBASEPRI;
 }
 /*-----------------------------------------------------------*/

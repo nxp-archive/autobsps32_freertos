@@ -23,7 +23,8 @@ ifeq ($(board),s32s_tv)
 BOARDFLAG += -DOS_FOR_S32S_TV
 endif
 #Path to Tool Directory
-CrossToolDir ?= C:/tools/gcc-6.3-arm32-eabi
+CrossToolDir ?= C:/tools/GCC_new
+#CrossToolDir ?= C:/tools/gcc-6.3-arm32-eabi
 #Path to FreeRtos Directory
 OsPath ?= ../..
 OutDir := Output

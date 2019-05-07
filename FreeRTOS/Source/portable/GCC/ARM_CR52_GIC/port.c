@@ -40,32 +40,35 @@ void vPortYield(void)
 {
     /** do not save R0, R1, R2, R3, R12 */
     OSASM(" mrc p15, 0, r3, c4, c6, 0                       \t\n"); /* get the ICC_PMR */
-    OSASM(" ldr r0, =pxCurrentTCB                           \t\n");
+    OSASM(" mov r2, %0\t\n": : "i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ): );
+    OSASM(" mcr p15, 0, r2, c4, c6, 0                       \t\n"); /* Write r2 into ICC_PMR, disable OS interrupts */
+
+    OSASM(" ldr r0, =pxCurrentTCB                           \t\n"); /* Get current TCB */
     OSASM(" ldr r1, [r0]                                    \t\n");
+
     OSASM(" stmfd sp!, {r3-r11, lr}                         \t\n"); /* interrupt priority mask and callee-save registers using task stack */
     OSASM(" mov r2, #0                                      \t\n"); /* solicited = 0 */
     OSASM(" ldr r0, =uxCriticalNesting                      \t\n");
     OSASM(" ldr r3, [r0]                                    \t\n");
     OSASM(" stmfd sp!, {r2,r3}                              \t\n"); /* solicited (0, CPSR) context switched and uxCriticalNesting*/
     OSASM(" str sp, [r1]                                    \t\n"); /* save task top of stack */
-    OSASM(" cpsid  i                                        \t\n");
-    OSASM(" mov r2, %0\t\n": : "i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ): );
-    OSASM(" mcr p15, 0, r2, c4, c6, 0                       \t\n"); /* Write r2 into ICC_PMR, disable OS interrupts */
-    OSASM(" cpsie  i                                        \t\n");
+
     OSASM(" bl vTaskSwitchContext                           \t\n");
+
     OSASM(" ldr r0, =pxCurrentTCB                           \t\n");
     OSASM(" ldr r0, [r0]                                    \t\n");
     OSASM(" ldr sp, [r0]                                    \t\n"); /* get new stack of the task */
+
     OSASM(" ldmfd sp!, {r1-r11,lr}                          \t\n"); /* r1 - sol = 0/unsol = CPSR, r2 critical, r3 int mask */
     OSASM(" ldr r12, =uxCriticalNesting                     \t\n");
-    OSASM(" mcr p15, 0, r3, c4, c6, 0                       \t\n"); /* Write r3 into ICC_PMR, task mask level */
-    OSASM(" str r2, [r12]                                   \t\n"); /* save critical */
+    OSASM(" mcr p15, 0, r3, c4, c6, 0                       \t\n"); /* restore r3 into ICC_PMR, task mask level */
+    OSASM(" str r2, [r12]                                   \t\n"); /* restore critical nesting */
     OSASM(" cmp r1, #0                                      \t\n");
     OSASM(" beq 1f                                          \t\n"); /* go to solicited, 1: */
-    OSASM(" mov r0, sp                                      \t\n"); /* prepare exit from interrupt, r0 contains user SP */
     OSASM(" cpsid i                                         \t\n"); /* disable interrupts */
+    OSASM(" mov r0, sp                                      \t\n"); /* prepare exit from interrupt, r0 contains user SP */
     OSASM(" add sp, sp, #24                                 \t\n"); /* user stack unload r0 - r3, r12, r14 */
-    OSASM(" msr spsr_irq, r1                                \t\n"); /* unsolicited (MOV R1 to spsr) */
+    OSASM(" msr spsr_irq, r1                                \t\n"); /* unsolicited (MOV R1 to SPSR) */
     OSASM(" cps #0x12                                       \t\n"); /* enter in IRQ mode */
     OSASM(" ldm r0, {r0-r3, r12, r14}                       \t\n"); /* get registers from user stack */
     OSASM(" subs pc, lr, #4                                 \t\n"); /* return from interrupt */
@@ -169,17 +172,6 @@ void vPortInterruptDispatcher(void) __attribute__ (( naked ))  __attribute__((se
 void vPortInterruptDispatcher(void)
 {
     OSASM(" push {r3, r12, r14}                             \t\n"); /* save r12, r14 to interrupt stack */
-#if 0
-/** debug **/
-    OSASM(" ldr r3, =0x340052dd                             \t\n");
-    OSASM(" mrs r12, LR_usr                                 \t\n");
-    OSASM(" cmp r3, r12                                     \t\n");
-    OSASM(" bne 1f                                          \t\n");
-    OSASM(" mrc p15, 0, r3, c4, c6, 0                       \t\n"); /* get the ICC_PMR */
-    OSASM(" nop                                             \t\n");
-    OSASM(" 1:                                              \t\n");
-/** end debug **/
-#endif
     OSASM(" mrc p15, 0, r14, c12, c12, 0                    \t\n"); /* get interrupt id, r14 */
     OSASM(" mrc p15, 0, r12, c12, c11, 3                    \t\n"); /* get interrupt priority, r12 */
     OSASM(" cmp r12,%0\t\n"::"i" ( configMAX_SYSCALL_INTERRUPT_PRIORITY ):);
