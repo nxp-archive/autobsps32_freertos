@@ -204,12 +204,14 @@ void vPortInterruptDispatcher(void)
     OSASM(" add r3, r3, #1                                  \t\n"); /* inc uxInterruptNested */
     OSASM(" str r3, [r12]                                   \t\n"); /* save uxInterruptNested */
 #if defined(__thumb__)
-    OSASM(" itt ne                                          \t\n");
-    OSASM(" stmdbne sp!, {r0-r2}                            \t\n"); /* uxInterruptNested != 0, using irq stack */
+    OSASM(" beq 2f                                          \t\n");
+    OSASM(" stmdb sp!, {r0-r2}                              \t\n"); /* uxInterruptNested != 0, using irq stack */
+    OSASM(" b 1f                                            \t\n"); /* jump to "prepare Call user handler" */
+    OSASM(" 2:                                              \t\n");
 #else
     OSASM(" stmnedb sp!, {r0-r2}                            \t\n"); /* uxInterruptNested != 0, using irq stack */
-#endif
     OSASM(" bne 1f                                          \t\n"); /* jump to "prepare Call user handler" */
+#endif
 
     OSASM(" mrs r12, SP_usr                                 \t\n"); /* get user stack to r12 */
     OSASM(" sub r12, r12, #12                               \t\n"); /* space for r3, r12, r14 */
@@ -246,9 +248,10 @@ void vPortInterruptDispatcher(void)
     OSASM(" subs r3, r3, #1                                 \t\n"); /* dec uxInterruptNested */
     OSASM(" str r3, [r12]                                   \t\n"); /* save uxInterruptNested */
 #if defined(__thumb__)
-    OSASM(" itt ne                                          \t\n");
-    OSASM(" ldmfdne sp!, {r0-r3, r12, r14}                  \t\n"); /* return from irq uxInterruptNested != 0 */
-    OSASM(" subsne pc, lr, #4                               \t\n"); /* return from irq uxInterruptNested != 0 */
+    OSASM(" beq 2f                                          \t\n");
+    OSASM(" ldmfd sp!, {r0-r3, r12, r14}                    \t\n"); /* return from irq uxInterruptNested != 0 */
+    OSASM(" subs pc, lr, #4                                 \t\n"); /* return from irq uxInterruptNested != 0 */
+    OSASM(" 2:                                              \t\n");
 #else
     OSASM(" ldmnefd sp!, {r0-r3, r12, r14}                  \t\n"); /* return from irq uxInterruptNested != 0 */
     OSASM(" subnes pc, lr, #4                               \t\n"); /* return from irq uxInterruptNested != 0 */
@@ -260,12 +263,16 @@ void vPortInterruptDispatcher(void)
     OSASM(" ldr r14, [r14]                                  \t\n");
     OSASM(" cmp r14, r1                                     \t\n"); /* compare crt TCB with previous TCB */
 #if defined(__thumb__)
-    OSASM(" ittt eq                                         \t\n");
-#endif
+    OSASM(" bne 2f                                          \t\n");
+    OSASM(" add r1, r0, #24                                 \t\n"); /* unload user stack, no schedule */
+    OSASM(" msr SP_usr, r1                                  \t\n"); /* update user stack, no schedule */
+    OSASM(" b nothingToDo                                   \t\n");
+    OSASM(" 2:                                              \t\n");
+#else
     OSASM(" addeq r1, r0, #24                               \t\n"); /* unload user stack, no schedule */
     OSASM(" msreq SP_usr, r1                                \t\n"); /* update user stack, no schedule */
     OSASM(" beq nothingToDo                                 \t\n");
-
+#endif
     OSASM(" mrc p15, 0, r3, c4, c6, 0                       \t\n"); /* get interrupt mask, r3 */
 
 #if defined(__thumb__)
@@ -291,15 +298,14 @@ void vPortInterruptDispatcher(void)
     OSASM(" ldmfd r0!, {r4-r11, r14}                        \t\n"); /* Get saved regs + r14_usr to r14_irq */
     OSASM(" cmp r2, #0                                      \t\n"); /* is solicited? solicited yield does not need a specific CPSR so, it can use the previous CPSR/SPSR */
 #if defined(__thumb__)
-    OSASM(" itttt eq                                        \t\n");
-#endif
-    OSASM(" msreq SP_usr, r0                                \t\n"); /* solicited, update user stack */
-#if defined(__thumb__)
-    OSASM(" movweq r2, 0x13f                                \t\n");
-    OSASM(" msreq spsr_irq, r2                              \t\n");
-
-    OSASM(" movseq pc, lr                                   \t\n"); /* exit from interrupt, solicited return, no need to subs */
+    OSASM(" bne 2f                                          \t\n");
+    OSASM(" msr SP_usr, r0                                  \t\n"); /* solicited, update user stack */
+    OSASM(" movw r2, 0x13f                                  \t\n");
+    OSASM(" msr spsr_irq, r2                                \t\n");
+    OSASM(" movs pc, lr                                     \t\n"); /* exit from interrupt, solicited return, no need to subs */
+    OSASM(" 2:                                              \t\n");
 #else
+    OSASM(" msreq SP_usr, r0                                \t\n"); /* solicited, update user stack */
     OSASM(" moveqs pc, lr                                   \t\n"); /* exit from interrupt, solicited return, no need to subs */
 #endif
     OSASM(" msr spsr_irq, r2                                \t\n"); /* save spsr, unsolicited */
