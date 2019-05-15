@@ -40,7 +40,7 @@ extern "C"
 #if defined(OS_FOR_S32S_TV)
 #define STM_ENABLE(id, div)                 (SYS_REG32(STM_BASE(id)) = ENABLE + ((0xff & (div)) << 8))
 #else
-#define STM_ENABLE(id, div)                 (SYS_REG32(STM_BASE(id)) = (ENABLE | FREEZE) + \                                                                            ((0xff & (div)) << 8))
+#define STM_ENABLE(id, div)                 (SYS_REG32(STM_BASE(id)) = (ENABLE | FREEZE) + ((0xff & (div)) << 8))
 #endif
 
 #define STM_ENABLE_CHAN(id, chan, cmp)      {                                                                       \
