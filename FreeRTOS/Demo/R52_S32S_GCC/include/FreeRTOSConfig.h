@@ -29,10 +29,6 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
-#include "hw_system.h"
-#include "gicv3.h"
-#include "generic_timer.h"
-
 #define OS_TICK                 0x20000
 /*-----------------------------------------------------------
  * Application specific definitions.

@@ -38,7 +38,7 @@ OD := $(CrossToolDir)/bin/arm-none-eabi-objdump.exe
 
 OSCFLAGS := -g -O3 -mcpu=cortex-r52 -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall \
 			-I"$(OsPath)/Source/include" -I"$(OsPath)/Source/portable/GCC/ARM_CR52_GIC" \
-			-I"include" $(BOARDFLAG) $(CLUSTER)
+			-I"include" $(BOARDFLAG) $(CLUSTER) -Wa,-mno-warn-deprecated
 ifeq ($(iset), T32)
 	OSCFLAGS += -mthumb-interwork -mthumb 
 endif

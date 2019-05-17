@@ -87,9 +87,12 @@ typedef unsigned long UBaseType_t;
 
 
 
-
-
-
+#define portINTC_GIC_PRIO_BITS                  (5u)
+#define portINTC_GIC_PRIO_SHIFT                 (8u - portINTC_GIC_PRIO_BITS)
+#define portINTC_GIC_CONVERT_PRIO_SET(prio)     ((((prio) & 0x1Fu) ^ 0x1Fu) << portINTC_GIC_PRIO_SHIFT)
+#ifndef portINTC_GIC_MIN_PRIO
+    #define portINTC_GIC_MIN_PRIO                   (0)
+#endif
 
 #define portYIELD()                     vPortYield()
 /* Critical section management. */
@@ -98,7 +101,7 @@ extern void vPortExitCritical( void );
 #define portSET_INTERRUPT_MASK_FROM_ISR()       ulPortRaiseBASEPRI()
 #define portCLEAR_INTERRUPT_MASK_FROM_ISR(x)    vPortSetBASEPRI(x)
 #define portDISABLE_INTERRUPTS()                vPortRaiseBASEPRI()
-#define portENABLE_INTERRUPTS()                 vPortSetBASEPRI(OSINTC_GIC_CONVERT_PRIO_SET( OSINTC_GIC_MIN_PRIO ))
+#define portENABLE_INTERRUPTS()                 vPortSetBASEPRI(portINTC_GIC_CONVERT_PRIO_SET( portINTC_GIC_MIN_PRIO ))
 #define portENTER_CRITICAL()                    vPortEnterCritical()
 #define portEXIT_CRITICAL()                     vPortExitCritical()                                         
 

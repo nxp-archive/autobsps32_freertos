@@ -24,6 +24,7 @@
 #include <semphr.h>
 #include <event_groups.h>
 #include "hw_system.h"
+#include "gicv3.h"
 
 #define MAIN_PRIORITY                ( tskIDLE_PRIORITY + 2 )
 volatile uint32_t ui32_ms_cnt = 0;
