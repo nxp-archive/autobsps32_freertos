@@ -1,0 +1,160 @@
+;**************************************************************************************
+; Copyright 2019 NXP.
+;
+; Permission is hereby granted, free of charge, to any person obtaining a copy of
+; this software and associated documentation files (the "Software"), to deal in
+; the Software without restriction, including without limitation the rights to
+; use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+; the Software, and to permit persons to whom the Software is furnished to do so,
+; subject to the following conditions:
+;
+; The above copyright notice and this permission notice shall be included in all
+; copies or substantial portions of the Software.
+;
+; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+; IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+; FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+; COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+; IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+; CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+;
+
+; Start-Up Script for s32g274
+;========================================================================
+; CPU setup
+
+system.down
+sys.Reset
+symbol.sourcepath.reset
+sys.cpu S32G-M7_0
+SYStem.config.debugporttype JTAG
+SYStem.Option TRST OFF
+trace.method Onchip
+trace.DISABLE 
+ETM.OFF
+ITM.OFF
+SYStem.JtagClock 40MHz
+sys.Option DUALPORT on
+sys.memaccess DAP
+sys.mode prepare
+
+GOSUB InitSramEccViaRAMCtrl
+
+;; Writing loop to self instruction to memory
+D.S eaxi:0x34000000 %LE %Long 0x34000100
+D.S eaxi:0x34000004 %LE %Long 0x34000025
+D.S eaxi:0x34000024 %LE %Long 0xFFFEF7FF
+
+GOSUB EnableCM7_0
+GOSUB DisableSWTWatchdog
+
+sys.Option DisMode THUMB
+
+sys.MemAccess AXI
+SYStem.Option DUALPORT ON
+SYStem.Option.ResBreak OFF
+sys.attach
+break
+
+; Load code
+; update this patch according to your installation folder
+Data.LOAD.ELF Output\image.elf /GLOBTYPES /GT /MW /BUGFIX
+
+;DATA.LIST
+;SYMBOL.BROWSE.FUNCTION
+BREAK.RESET
+list.auto
+v.w ui32_ms_cnt task_1 task_2
+
+; simulate reset event
+Register.Set PC Reset_Handler
+
+; increase trace buffer size
+trace.size 10485760.
+
+; the main breakpoint can be used to trigger the TCL procedure that updates the SEMA4 properties
+b.s main
+ENDDO
+
+
+
+InitSramEccViaRAMCtrl:
+(
+    ;Initialize the RAM using OCPSRAMC[PRAMCR:INITREQ] controller.  ;SRAMC_0
+  PER.Set.simple eaxi:0x4019C00C %Long 0xFFFFFFFF ; clear all the errors, PRAMSR
+  PER.Set.simple eaxi:0x4019C008 %Long 0x3fff  ; range 0x34000000--0x343FFFFF
+  PER.Set.simple eaxi:0x4019C000 %Long 0x00000001
+  WHILE ((data.long(eaxi:0x4019C00C)&0x00000001)==0x00000000)      
+  (
+    ; wait for DMA DONE bit to be set
+  )
+  RETURN
+)
+
+EnableCM7_0:
+(
+    ; Partition 0 - enable peripherals. Optional, none used by MCAL.
+    Data.Set eaxi:0x40088100 %Long 0x00000001    ; MC_ME.PRTN0_PCONF.R = 1, PCE=1, Enable the clock to IPs
+    Data.Set eaxi:0x40088104 %Long 0x00000001    ; MC_ME.PRTN0_PUPD.R = 1, PCUD=1, Trigger the hardware process for enabling/disabling the clock to IPs (other than core(s)) 
+    Data.Set eaxi:0x40088130 %Long 0x00000003    ; MC_ME.PRTN0_COFB0_CLKEN.R = 0x3
+    Data.Set eaxi:0x40088000 %Long 0x00005AF0    ; MC_ME.MC_ME_CTL_KEY.R
+    Data.Set eaxi:0x40088000 %Long 0x0000A50F    ; MC_ME.MC_ME_CTL_KEY.R
+    ; wait for clock to be active
+    WAIT (Data.Long(eaxi:0x40088108)&0x00000001)==0x00000001      ; MC_ME.PRTN0_STAT.R
+    WAIT (Data.Long(eaxi:0x40088110)&0x00000003)==0x00000003      ; MC_ME.PRTN0_COFB0_STAT.R
+
+    ; Partition 0 - enable core.
+    ;Data.Set eaxi:0x40088004 %Long 0x00000001    ; MC_ME.MODE_CONF.R = 1, DEST_RST=1
+    Data.Set eaxi:0x4008814C %Long 0x34000000        ; MC_ME.PRTN0_CORE0_ADDR.R = x
+    Data.Set eaxi:0x40088140 %Long 0x00000001    ; MC_ME.PRTN0_CORE0_PCONF.R = 1, CCE=1, Enable the core clock
+    Data.Set eaxi:0x40088144 %Long 0x00000001    ; MC_ME.PRTN0_CORE0_PUPD.R = 1, CCUPD=1, Trigger the hardware process for enabling core clock to Core 0
+    Data.Set eaxi:0x40088000 %Long 0x00005AF0    ; MC_ME.MC_ME_CTL_KEY.R
+    Data.Set eaxi:0x40088000 %Long 0x0000A50F    ; MC_ME.MC_ME_CTL_KEY.R
+    ; wait for clock to be active
+    WAIT (Data.Long(eaxi:0x40088148)&0x00000001)==0x00000001      ; MC_ME.PRTN0_CORE0_STAT.R, CCS=1, Core 0 clock is active
+     
+    ; CM7 Cluster 0 RGM_PRST0_0[PERIPH0_RST]
+    ; CM7 Cluster 1 RGM_PRST0_0[PERIPH1_RST]  
+    ; CM7 Cluster 2 RGM_PRST0_0[PERIPH2_RST]
+    ; CA53 core 0 – Cluster 0 RGM_PRST1_0[PERIPH1_RST]
+    ; CA53 core 1 - Cluster 0 RGM_PRST1_0[PERIPH2_RST]
+    ; CA53 core 2 – Cluster 1 RGM_PRST1_0[PERIPH3_RST]
+    ; CA53 core 3 – Cluster 1 RGM_PRST1_0[PERIPH4_RST]
+    ; LLCE                    RGM_PRST3_0[PERIPH0_RST]
+
+    ;Release the core reset via the corresponding MC_RGM_PRST register
+    Data.Set eaxi:0x40078040 %Long 0xFFFFFFFE    ; MC_RGM.PRST0_0.R, PERIPH_0_RST=0, release CM7_0 from reset.
+
+    ;Wait for reset and output safe stating status bits
+    WAIT (Data.Long(eaxi:0x40078140)&0x00000001)==0x00000000      ; MC_RGM.PSTAT0_0; 0b - Peripheral PERIPH_28_STAT is not in reset
+   
+    RETURN
+)
+DisableSWTWatchdog:
+(
+  ; disable the Watchdog
+  PRIVATE &index
+  	
+  ; Disable SWT0..3
+  &index=0
+  WHILE &index<4.
+  (
+    Data.Set eaxi:0x40100010+(&index*0x4000) %Long 0x0000C520
+    Data.Set eaxi:0x40100010+(&index*0x4000) %Long 0x0000D928
+    Data.Set eaxi:0x40100000+(&index*0x4000) %Long 0xFF000000
+    &index=&index+1
+  )
+  
+  ; Disable SWT4..7
+  &index=0
+  WHILE &index<4.
+  (
+    Data.Set eaxi:0x40200010+(&index*0x4000) %Long 0x0000C520
+    Data.Set eaxi:0x40200010+(&index*0x4000) %Long 0x0000D928
+    Data.Set eaxi:0x40200000+(&index*0x4000) %Long 0xFF000000
+    &index=&index+1
+  )
+  	
+  RETURN
+)
+
