@@ -43,7 +43,7 @@
 #define partstMAX_LEDS		4
 
 /* The bits used to control the LEDs on the S32K144. */
-const unsigned long ulLEDs[ partstMAX_LEDS ] = { ( 1UL << 2UL ), ( 1UL << 3UL ), ( 1UL << 15UL ), ( 1UL << 14UL ) };
+const unsigned long ulLEDs[ partstMAX_LEDS ] = { ( 1UL << 7UL ), ( 1UL << 8UL ), ( 1UL << 5UL ), ( 1UL << 5UL ) };
 
 /*-----------------------------------------------------------*/
 
@@ -51,18 +51,20 @@ void vParTestInitialise( void )
 {
 	/* Set PTB2, PTB3, PTC14, and PTC15 (connected to LED's) for GPIO
 	functionality. */
-	PORTB->PCR[2] = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTB->PCR[3] = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTC->PCR[14] = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTC->PCR[15] = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTE->PCR[7] = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTE->PCR[8] = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTB->PCR[5] = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTD->PCR[5] = ( 0 | PORT_PCR_MUX( 1 ) );
 
 	/* Change PTB2, PTB3, PTC14, and PTC15 to outputs. */
-	PTB->PDDR = GPIO_PDDR_PDD( ulLEDs[ 0 ] | ulLEDs[ 1 ] );
-	PTC->PDDR = GPIO_PDDR_PDD( ulLEDs[ 2 ] | ulLEDs[ 3 ] );
+	PTE->PDDR = GPIO_PDDR_PDD( ulLEDs[ 0 ] | ulLEDs[ 1 ] );
+	PTB->PDDR = GPIO_PDDR_PDD( ulLEDs[ 2 ] );
+	PTD->PDDR = GPIO_PDDR_PDD( ulLEDs[ 3 ] );
 
 	/* Start with LEDs off. */
+	PTE->PTOR = ~0U;
 	PTB->PTOR = ~0U;
-	PTC->PTOR = ~0U;
+	PTD->PTOR = ~0U;
 }
 /*-----------------------------------------------------------*/
 
@@ -73,16 +75,20 @@ void vParTestSetLED( unsigned long ulLED, signed portBASE_TYPE xValue )
 		if( xValue == pdTRUE )
 		{
 			if ( ulLED == 0 || ulLED == 1 )
+				PTE->PCOR = ulLEDs[ ulLED ];
+			else if ( ulLED == 2)
 				PTB->PCOR = ulLEDs[ ulLED ];
 			else
-				PTC->PCOR = ulLEDs[ ulLED ];
+				PTD->PCOR = ulLEDs[ ulLED ];
 		}
 		else
 		{
 			if ( ulLED == 0 || ulLED == 1 )
+				PTE->PSOR = ulLEDs[ ulLED ];
+			else if ( ulLED == 2)
 				PTB->PSOR = ulLEDs[ ulLED ];
 			else
-				PTC->PSOR = ulLEDs[ ulLED ];
+				PTD->PSOR = ulLEDs[ ulLED ];
 		}
 	}
 }
@@ -93,9 +99,11 @@ void vParTestToggleLED( unsigned long ulLED )
 	if( ulLED < partstMAX_LEDS )
 	{
 		if ( ulLED == 0 || ulLED == 1 )
+			PTE->PTOR = ulLEDs[ ulLED ];
+		else if ( ulLED == 2)
 			PTB->PTOR = ulLEDs[ ulLED ];
 		else
-			PTC->PTOR = ulLEDs[ ulLED ];
+			PTD->PTOR = ulLEDs[ ulLED ];
 	}
 }
 /*-----------------------------------------------------------*/
@@ -107,10 +115,11 @@ long lReturn = pdFALSE;
 	if( ulLED < partstMAX_LEDS )
 	{
 		if ( ulLED == 0 || ulLED == 1 )
+			lReturn = PTE->PDOR & ulLEDs[ ulLED ];
+		else if ( ulLED == 2)
 			lReturn = PTB->PDOR & ulLEDs[ ulLED ];
 		else
-			lReturn = PTC->PDOR & ulLEDs[ ulLED ];
-
+			lReturn = PTD->PDOR & ulLEDs[ ulLED ];
 		if( lReturn == 0 )
 		{
 			lReturn = pdTRUE;

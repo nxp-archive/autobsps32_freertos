@@ -164,7 +164,7 @@ callback functions. */
 
 /* The vector used by the GPIO port C.  Button SW7 is configured to generate
 an interrupt on this port. */
-#define mainGPIO_C_VECTOR					( 61 )
+#define mainGPIO_B_VECTOR					( 60 )
 
 /*-----------------------------------------------------------*/
 
@@ -367,7 +367,7 @@ unsigned long ulLED;
 /*-----------------------------------------------------------*/
 
 /* The ISR executed when the user button is pushed. */
-void vPort_C_ISRHandler( void )
+void vPort_B_ISRHandler( void )
 {
 	portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
@@ -382,7 +382,7 @@ void vPort_C_ISRHandler( void )
 	xTimerResetFromISR( xLEDButtonTimer, &xHigherPriorityTaskWoken );
 
 	/* Clear the interrupt before leaving.  */
-	PORTC->ISFR = 0xFFFFFFFFUL;
+	PORTB->ISFR = 0xFFFFFFFFUL;
 
 	/* If calling xTimerResetFromISR() caused a task (in this case the timer
 	service/daemon task) to unblock, and the unblocked task has a priority
@@ -396,15 +396,16 @@ void vPort_C_ISRHandler( void )
 static void prvSetupHardware( void )
 {
     PCC->PCCn[PCC_PORTB_INDEX] = PCC_PCCn_CGC(1);
-    PCC->PCCn[PCC_PORTC_INDEX] = PCC_PCCn_CGC(1);
+    PCC->PCCn[PCC_PORTD_INDEX] = PCC_PCCn_CGC(1);
+    PCC->PCCn[PCC_PORTE_INDEX] = PCC_PCCn_CGC(1);
 	/* Enable the interrupt on SW7. */
 	taskDISABLE_INTERRUPTS();
-	PORTC->PCR[10] = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
-	enable_irq( mainGPIO_C_VECTOR );
+	PORTB->PCR[12] = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
+	enable_irq( mainGPIO_B_VECTOR );
 
 	/* The interrupt calls an interrupt safe API function - so its priority must
 	be equal to or lower than configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY. */
-	set_irq_priority( mainGPIO_C_VECTOR, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
+	set_irq_priority( mainGPIO_B_VECTOR, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
 
 	/* Configure the LED outputs. */
 	vParTestInitialise();

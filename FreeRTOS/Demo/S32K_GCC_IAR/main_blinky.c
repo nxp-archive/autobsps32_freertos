@@ -103,15 +103,15 @@ the queue empty. */
 #define mainQUEUE_LENGTH					( 1 )
 
 /* The LED toggle by the queue receive task (blue). */
-#define mainTASK_CONTROLLED_LED				( 1UL << 2UL )
+#define mainTASK_CONTROLLED_LED				( 1UL << 7UL )
 
 /* The LED turned on by the button interrupt, and turned off by the LED timer
 (green). */
-#define mainTIMER_CONTROLLED_LED			( 1UL << 15UL )
+#define mainTIMER_CONTROLLED_LED			( 1UL << 8UL )
 
 /* The vector used by the GPIO port C.  Button SW7 is configured to generate
 an interrupt on this port. */
-#define mainGPIO_C_VECTOR					( 61 )
+#define mainGPIO_B_VECTOR					( 60 )
 
 /* A block time of zero simply means "don't block". */
 #define mainDONT_BLOCK						( 0UL )
@@ -188,19 +188,19 @@ static void prvButtonLEDTimerCallback( TimerHandle_t xTimer )
 {
 	/* The timer has expired - so no button pushes have occurred in the last
 	five seconds - turn the LED off. */
-	PTC->PSOR = mainTIMER_CONTROLLED_LED;
+	PTE->PSOR |= mainTIMER_CONTROLLED_LED;
 }
 /*-----------------------------------------------------------*/
 
 /* The ISR executed when the user button is pushed. */
-void vPort_C_ISRHandler( void )
+void vPort_B_ISRHandler( void )
 {
 portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 
 	/* The button was pushed, so ensure the LED is on before resetting the
 	LED timer.  The LED timer will turn the LED off if the button is not
 	pushed within 5000ms. */
-	PTC->PCOR = mainTIMER_CONTROLLED_LED;
+	PTE->PCOR |= mainTIMER_CONTROLLED_LED;
 
 	/* This interrupt safe FreeRTOS function can be called from this interrupt
 	because the interrupt priority is below the
@@ -208,7 +208,7 @@ portBASE_TYPE xHigherPriorityTaskWoken = pdFALSE;
 	xTimerResetFromISR( xButtonLEDTimer, &xHigherPriorityTaskWoken );
 
 	/* Clear the interrupt before leaving. */
-	PORTC->ISFR = 0xFFFFFFFFUL;
+	PORTB->ISFR = 0xFFFFFFFFUL;
 
 	/* If calling xTimerResetFromISR() caused a task (in this case the timer
 	service/daemon task) to unblock, and the unblocked task has a priority
@@ -259,7 +259,7 @@ unsigned long ulReceivedValue;
 		is it the expected value?  If it is, toggle the LED. */
 		if( ulReceivedValue == 100UL )
 		{
-		    PTB->PTOR = mainTASK_CONTROLLED_LED;
+		    PTE->PTOR = mainTASK_CONTROLLED_LED;
 		}
 	}
 }
@@ -267,30 +267,26 @@ unsigned long ulReceivedValue;
 
 static void prvSetupHardware( void )
 {
+    PCC->PCCn[PCC_PORTE_INDEX] = PCC_PCCn_CGC(1);
     PCC->PCCn[PCC_PORTB_INDEX] = PCC_PCCn_CGC(1);
-    PCC->PCCn[PCC_PORTC_INDEX] = PCC_PCCn_CGC(1);
 	/* Enable the interrupt on SW7. */
-	PORTC->PCR[10] = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
-	enable_irq( mainGPIO_C_VECTOR );
+	PORTB->PCR[12] = PORT_PCR_MUX( 1 ) | PORT_PCR_IRQC( 0xA ) | PORT_PCR_PE_MASK | PORT_PCR_PS_MASK;
+	enable_irq( mainGPIO_B_VECTOR );
 
 	/* The interrupt calls an interrupt safe API function - so its priority must
 	be equal to or lower than configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY. */
-	set_irq_priority( mainGPIO_C_VECTOR, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
+	set_irq_priority( mainGPIO_B_VECTOR, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
 
 	/* Set PTB2, PTB3, PTC14, and PTC15 (connected to LED's) for GPIO
 	functionality. */
-	PORTB->PCR[2]  = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTB->PCR[3]  = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTC->PCR[14] = ( 0 | PORT_PCR_MUX( 1 ) );
-	PORTC->PCR[15] = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTE->PCR[7]  = ( 0 | PORT_PCR_MUX( 1 ) );
+	PORTE->PCR[8]  = ( 0 | PORT_PCR_MUX( 1 ) );
 
 	/* Change PTB2, PTC15 to outputs. */
-	PTB->PDDR = GPIO_PDDR_PDD( mainTASK_CONTROLLED_LED );
-	PTC->PDDR = GPIO_PDDR_PDD( mainTIMER_CONTROLLED_LED );
+	PTE->PDDR = GPIO_PDDR_PDD( mainTASK_CONTROLLED_LED ) | GPIO_PDDR_PDD( mainTIMER_CONTROLLED_LED );
 
 	/* Start with LEDs off. */
-	PTB->PTOR = ~0U;
-	PTC->PTOR = ~0U;
+	PTE->PTOR = ~0U;
 }
 /*-----------------------------------------------------------*/
 

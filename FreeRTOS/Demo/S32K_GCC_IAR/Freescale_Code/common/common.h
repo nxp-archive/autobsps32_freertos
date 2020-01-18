@@ -16,12 +16,9 @@
 /*
  * Include the cpu specific header file
  */
-#if (defined(CPU_S32K144))
+#if (defined(CPU_S32K144HT))
     #include "cortex-m4.h"
     #include "S32K144.h"
-#elif (defined(CPU_S32K118))
-    #include "cortex-m0plus.h"
-    #include "S32K118.h"
 #else
 	#error "No valid CPU defined"
 #endif
@@ -32,9 +29,6 @@
 #include "startup.h"
 #include "stdlib.h"
 
-#if (defined(IAR))
-	#include "intrinsics.h"
-#endif
 
 /********************************************************************/
 
