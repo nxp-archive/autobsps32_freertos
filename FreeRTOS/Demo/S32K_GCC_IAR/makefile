@@ -10,48 +10,12 @@ MAP     := $(PROJECT).map
 # Default compiler
 compiler := gcc
 
-# List of supported compilers
-compilers_list := iar gcc
-
-# Compiler checking
-ifneq ($(filter $(compiler),$(compilers_list)),$(compiler))
-$(error Undefined compiler type: '$(compiler)', use one from: $(compilers_list))
-endif
-
 # Default platform
-platform := s32k144
+platform := s32k144HT
 
-#list of platform
-platforms_list := s32k144 s32k118
-
-# Compiler checking
-ifneq ($(filter $(platform),$(platforms_list)),$(platform))
-$(error Undefined platform type: '$(platform)', use one from: $(platforms_list))
-endif
-
-
-ifeq ($(platform),s32k144)
-	ifeq ($(compiler),gcc)
-		PROC := cortex-m4
-		CPU_DEFINE := CPU_S32K144
-	else
-		PROC := cortex-m4F
-		CPU_DEFINE := CPU_S32K144
-	endif
-	CPU_file_name := cortex-m4
-endif
-
-
-ifeq ($(platform),s32k118)
-	ifeq ($(compiler),gcc)
-		PROC := cortex-m0plus
-		CPU_DEFINE := CPU_S32K118
-	else
-		PROC := cortex-m0+
-		CPU_DEFINE := CPU_S32K118
-	endif
-	CPU_file_name := cortex-m0plus
-endif
+PROC := cortex-m4
+CPU_DEFINE := CPU_S32K144HT
+CPU_file_name := cortex-m4
 
 
 # Default load type
@@ -97,67 +61,8 @@ CMM            := $(PLATFORM).cmm
 ###############################################################################
 
 ###############################################################################
-# IAR compiler settings
-###############################################################################
-
-ifeq ($(compiler),iar)
-
-# Environment variable IAR_ARM_8_1_PATH must be set
-# Spaces are not allowed in the path
-IAR_PATH := $(subst \,/,"$(IAR_ARM_8_1_PATH)")
-
-# Compiler/Assembler/Linker Paths
-CC   := $(IAR_PATH)/arm/bin/iccarm
-ASM  := $(IAR_PATH)/arm/bin/iasmarm
-LINK := $(IAR_PATH)/arm/bin/ilinkarm
-
-# Assemble/compile/link flags
-ASFLAGS      := --cpu $(PROC) --cpu_mode thumb -g
-APP_ASFLAGS  := -DAPP_ASFLAG
-CORE_ASFLAGS := -DCORE_ASFLAG
-
-CFLAGS       := -On -e --cpu=$(PROC) --thumb --no_wrap_diagnostics --debug
-CFLAGS       += -DIAR --no_system_include -D$(CPU_DEFINE)
-APP_CFLAGS   := -DAPP_CFLAG
-CORE_CFLAGS  := -DCORE_CFLAG -D$(CPU_DEFINE)
-
-LDFLAGS      := --no_wrap_diagnostics --skip_dynamic_initialization
-LDFLAGS      += -L $(IAR_PATH)/arm/lib --map $(MAP)
-LDFLAGS      += --config $(DIR_LINKER)/$(platform)_$(load_type).icf
-
-# Platform specific directory and .s file
-ifeq ($(platform),s32k144)
-DIR_CMXX     := $(DIR_SRC)/portable/IAR/ARM_CM4F
-endif
-
-ifeq ($(platform),s32k118)
-DIR_CMXX     := $(DIR_SRC)/portable/IAR/ARM_CM0
-endif
-
-SRC_CORE_ASM := $(DIR_CMXX)/portasm.s
-
-ifeq ($(load_type),ram)
-
-LDFLAGS += --entry __startup
-
-else
-
-CFLAGS  += -DAPP_FLASH
-LDFLAGS += --entry __iar_program_start
-
-endif
-
-# IAR related includes
-INCLUDES := -I$(IAR_PATH)/arm/inc
-INCLUDES += -I$(IAR_PATH)/arm/inc/c
-
-endif
-
-###############################################################################
 # GCC compiler settings
 ###############################################################################
-
-ifeq ($(compiler),gcc)
 
 # Environment variable GCC_ARM_6_3_PATH must be set
 # Spaces are not allowed in the path
@@ -188,15 +93,8 @@ CORE_ASFLAGS := -DCORE_ASFLAG
 APP_CFLAGS   := -DAPP_CFLAG
 CORE_CFLAGS  := -DCORE_CFLAG
 
-# Platform specific
-ifeq ($(platform),s32k144)
 CFLAGS       += -fomit-frame-pointer -mfloat-abi=softfp
 DIR_CMXX := $(DIR_SRC)/portable/GCC/ARM_CM4F
-endif
-
-ifeq ($(platform),s32k118)
-DIR_CMXX := $(DIR_SRC)/portable/GCC/ARM_CM0
-endif
 
 ifeq ($(load_type),flash)
 CFLAGS += -DAPP_FLASH
@@ -204,8 +102,6 @@ endif
 
 # GCC related includes
 INCLUDES := -I$(GCC_PATH)/arm-none-eabi/include
-
-endif
 
 ###############################################################################
 # List of the common source files
