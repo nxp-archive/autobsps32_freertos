@@ -109,7 +109,7 @@ the queue empty. */
 (green). */
 #define mainTIMER_CONTROLLED_LED			( 1UL << 8UL )
 
-/* The vector used by the GPIO port C.  Button SW7 is configured to generate
+/* The vector used by the GPIO port B.  Button SW7 is configured to generate
 an interrupt on this port. */
 #define mainGPIO_B_VECTOR					( 60 )
 
@@ -277,12 +277,12 @@ static void prvSetupHardware( void )
 	be equal to or lower than configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY. */
 	set_irq_priority( mainGPIO_B_VECTOR, configLIBRARY_MAX_SYSCALL_INTERRUPT_PRIORITY );
 
-	/* Set PTB2, PTB3, PTC14, and PTC15 (connected to LED's) for GPIO
+	/* Set PTE7, PTE8 (connected to LED's) for GPIO
 	functionality. */
 	PORTE->PCR[7]  = ( 0 | PORT_PCR_MUX( 1 ) );
 	PORTE->PCR[8]  = ( 0 | PORT_PCR_MUX( 1 ) );
 
-	/* Change PTB2, PTC15 to outputs. */
+	/* Change PTE7, PTE8 to outputs. */
 	PTE->PDDR = GPIO_PDDR_PDD( mainTASK_CONTROLLED_LED ) | GPIO_PDDR_PDD( mainTIMER_CONTROLLED_LED );
 
 	/* Start with LEDs off. */

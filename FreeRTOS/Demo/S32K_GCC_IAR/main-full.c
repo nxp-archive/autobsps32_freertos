@@ -162,7 +162,7 @@ callback functions. */
 /* A block time of zero simply means "don't block". */
 #define mainDONT_BLOCK						( 0UL )
 
-/* The vector used by the GPIO port C.  Button SW7 is configured to generate
+/* The vector used by the GPIO port B.  Button SW7 is configured to generate
 an interrupt on this port. */
 #define mainGPIO_B_VECTOR					( 60 )
 

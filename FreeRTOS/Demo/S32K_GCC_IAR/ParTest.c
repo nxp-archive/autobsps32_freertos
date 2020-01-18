@@ -42,21 +42,21 @@
 /* Only the LEDs on one of the two seven segment displays are used. */
 #define partstMAX_LEDS		4
 
-/* The bits used to control the LEDs on the S32K144. */
+/* The bits used to control the LEDs on the S32K144HT. */
 const unsigned long ulLEDs[ partstMAX_LEDS ] = { ( 1UL << 7UL ), ( 1UL << 8UL ), ( 1UL << 5UL ), ( 1UL << 5UL ) };
 
 /*-----------------------------------------------------------*/
 
 void vParTestInitialise( void )
 {
-	/* Set PTB2, PTB3, PTC14, and PTC15 (connected to LED's) for GPIO
+	/* Set PTE7, PTE8, PTB5, and PTD5 (connected to LED's) for GPIO
 	functionality. */
 	PORTE->PCR[7] = ( 0 | PORT_PCR_MUX( 1 ) );
 	PORTE->PCR[8] = ( 0 | PORT_PCR_MUX( 1 ) );
 	PORTB->PCR[5] = ( 0 | PORT_PCR_MUX( 1 ) );
 	PORTD->PCR[5] = ( 0 | PORT_PCR_MUX( 1 ) );
 
-	/* Change PTB2, PTB3, PTC14, and PTC15 to outputs. */
+	/* Change PTE7, PTE8, PTB5, and PTD5 to outputs. */
 	PTE->PDDR = GPIO_PDDR_PDD( ulLEDs[ 0 ] | ulLEDs[ 1 ] );
 	PTB->PDDR = GPIO_PDDR_PDD( ulLEDs[ 2 ] );
 	PTD->PDDR = GPIO_PDDR_PDD( ulLEDs[ 3 ] );
