@@ -1,0 +1,69 @@
+;
+; Copyright 2020 NXP
+;
+
+
+
+;=== elf-file for debugging ===
+&filename="../../../OUT/DEMO"
+&optimizePLL=0
+
+;set titles
+Title "RaceRunner Ultra 2 core e200z7b"
+
+;set equal paths
+&pwd=os.pwd()
+
+
+;=========================================================================
+; System settings
+;=========================================================================
+; CPU setup
+SYStem.RESet
+SYStem.BdmClock 2.0MHz
+SYStem.CPU S32R294
+SYStem.CONFIG.CORE 3. 1.
+SYStem.CONFIG.Slave OFF
+SYStem.Option.WATCHDOG OFF
+SYStem.OPTION DUALPORT ON
+SYStem.Option.SLOWRESET ON
+SYStem.up
+
+
+
+;switch to HLL mode debugging
+MODE.HLL
+
+
+wait 500ms
+
+
+;initialize internal SRAM.
+Data.Set EA:0x40000000--0x4005FFFF %quad 0x0
+
+
+map.bonchip 0x0--0x4005ffff
+
+DO init_ram.cmm &filename
+
+
+;clear all breakpoints
+Break.delete /ALL
+
+R.S IP __start
+
+go
+wait !RUN() 100.ms
+system.down
+SYStem.CONFIG.CORE 2. 1.
+SYStem.attach
+break
+r.s r5 1
+
+;display source
+Data.List
+register /sl
+
+v.w  ui32_ms_cnt_loop ui32_ms_cnt_hook ui32_coreID  ui32_vLedTask1 ui32_vLedTask0
+
+ENDDO

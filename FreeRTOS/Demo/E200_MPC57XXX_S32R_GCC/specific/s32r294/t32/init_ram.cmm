@@ -1,0 +1,54 @@
+;
+; Copyright 2020 NXP
+;
+
+
+;
+;========= Script for flash initialization =========
+;
+
+local &elfname
+entry &elfname
+
+;=========================================================================
+; RAM initialization
+;=========================================================================
+;Data.Set E:0x40000000--0x4000FFFF %Quad 0      ; Data RAM Bank 0
+Data.Set E:0x01000000--0x0107ffff %Quad 0       ;Instruction RAM Bank 0
+Data.Set E:0x01080000--0x010FFFFF %Quad 0       ;Instruction RAM Bank 1
+Data.Set E:0x01100000--0x0117FFFF %Quad 0       ;Instruction RAM Bank 2
+Data.Set E:0x01180000--0x011FFFFF %Quad 0       ;Instruction RAM Bank 3
+Data.Set E:0x01200000--0x0127FFFF %Quad 0       ;Instruction RAM Bank 5
+
+;Data.Set E:0x40000000--0x4003FFFF %Quad 0      ; Data RAM Bank 0
+;Data.Set E:0x40040000--0x4007FFFF %Quad 0      ; Data RAM Bank 1
+;Data.Set E:0x40080000--0x400BFFFF %Quad 0      ; Data RAM Bank 2
+;Data.Set E:0x400C0000--0x400FFFFF %Quad 0      ; Data RAM Bank 3
+;Data.Set E:0x40100000--0x4017FFFF %Quad 0      ; Data RAM Bank 4
+;Data.Set E:0x40180000--0x401FFFFF %Quad 0      ; Data RAM Bank 5
+;Data.Set E:0x40200000--0x4027FFFF %Quad 0      ; Data RAM Bank 6
+;Data.Set E:0x40300000--0x40301FFF %Quad 0      ; Retention RAM
+;
+;Data.Set E:0x50800000--0x5080FFFF %Quad 0      ;DMEM Core 0
+;Data.Set E:0x50810000--0x5081FFFF %Quad 0      ;DMEM Core 1
+;Data.Set E:0x50820000--0x5082FFFF %Quad 0      ;DMEM Core 2
+
+;========================================================================
+
+;Batch Job for debugging in internal FLASH
+;clear the TRACE32 screen
+;WinCLEAR
+
+; enable trace
+nexus.portmode 1250Mbps
+nexus.stall 1/4
+
+Map.BOnchip 0x00F98000--0x0117FFFF
+
+;load program (if FLASH selected than load only debug symbols)
+Data.Load.Elf &elfname.elf
+Data.Load.Elf &elfname.elf  /VM
+
+tronchip.EDBRAC0 0x40000108 ; This gives PMR ownership to target (used for trace and profiling)
+
+ENDDO
