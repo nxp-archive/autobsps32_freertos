@@ -26,7 +26,7 @@ CPP		:= $(COMPILER_ROOTDIR)powerpc-eabivle-cpp.exe
 
 
 ifndef PLATFORM
-PLATFORM ?= s32r274_z4a
+PLATFORM ?= s32r294_z4a
 endif
 
 $(if $($(findstring _,$(PLATFORM))),,$(error Format of PLATFORM parameter is not match.\
@@ -90,3 +90,4 @@ START_BAT_FILE:
 	@echo "" >> $(START_BAT_PATH)
 	@echo "SET T32_PATH= $(subst /,\\,$(LAUTERBACH_PATH))" >> $(START_BAT_PATH)
 	@echo "start %T32_PATH%\bin\windows64\t32mppc.exe -c .\config.t32,$(MCU)_core_$(CORE).cmm 20001 $(CPU) USB CORE=1 %T32_PATH%" >> $(START_BAT_PATH)
+	@chmod +rwx $(START_BAT_PATH)
