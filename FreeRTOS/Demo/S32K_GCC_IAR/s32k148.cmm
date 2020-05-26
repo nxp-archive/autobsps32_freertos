@@ -1,0 +1,216 @@
+; Script for programming of KFA (S32K148).
+;
+; $Author: Marius Rotaru $
+; $Date: 2015-04-15 $
+; This file contains sample code only. It is not part of the production code deliverables
+
+;========================================================================
+LOCAL &load_to
+LOCAL &elf_file
+LOCAL &load_params
+LOCAL &core_no
+LOCAL &rchw
+
+ENTRY &load_to &elf_file &load_params &core_no
+
+&optimizeFLSMODE=0
+&optimizeSECTORS=0
+&optimizeRAM=0
+&optimizePLL=0
+
+SYStem.Down
+ON.ERROR.continue    ;Disable error handler temporarily
+Break.RESet
+SYStem.JtagClock 1Mhz
+SYS.CPU S32K148
+sys.up
+
+;=========================================================================
+; Variables settings
+;=========================================================================
+
+;=========================================================================
+; System settings
+;=========================================================================
+;cpu settings - cortexm4, S32K148
+system.reset
+SYStem.Option TRST off
+SYStem.Option ResBreak on
+SYStem.Option WaitReset ON
+SYS.CPU S32K148
+SYStem.JtagClock 4MHz
+sys.up
+
+
+
+; Disable Bootrom
+GOSUB DisableBootrom
+; Disable watchdog
+GOSUB DisableWatchdog
+
+
+;=========================================================================
+; set-up system clock initialization
+;=========================================================================
+
+;=========================================================================
+; RAM initialization
+;=========================================================================
+if &optimizeRAM==1
+(
+    print "Starting RAM initialization:"
+    ; Initialize internal SRAM (59KB)
+    Data.Set A:0X1FFE0000--0X2001EFFF  %Quad 0
+)
+else
+(
+    Data.Set A:0X1FFE0000--0X2001EFFF  %Quad 0
+)
+
+IF "&load_to"=="flash"
+(
+;=========================================================================
+; Flash declaration
+;=========================================================================
+print "Starting FLASH sector creation:"
+GOSUB FlashDeclaration
+
+)
+;========================================================================
+; Flash programming example
+;
+; Flash programming speed is about three times faster when memory class E:
+; is used for data buffer (DUALPORT memory access). For DUALPORT access it
+; is required to setup MemAccess NEXUS for both, NEXUS and JTAG debugger.
+
+IF "&load_to"=="flash"
+(
+   if &optimizeFLSMODE==1
+   (
+      FLASH.Reprogram ALL
+      Data.Load.Elf &elf_file /GLOBTYPES
+      FLASH.Reprogram OFF
+
+   )
+   ELSE
+   (
+      FLASH.Reprogram ALL /ERASE
+      Data.Load.Elf &elf_file /GLOBTYPES
+      FLASH.Reprogram OFF
+
+   )
+)
+ELSE IF "&load_to"=="ERASE_ONLY"
+(
+   flash.unlock all
+   flash.auto off
+   flash.ERASE ALL
+   ENDDO
+)
+TrOnchip.Set CORERESET OFF
+
+
+
+system.reset
+SYStem.Option TRST off
+SYStem.Option ResBreak on
+SYStem.Option WaitReset ON
+SYStem.CPU &derivative_cpu
+SYStem.JtagClock 4MHz
+sys.up
+
+
+; Disable watchdog
+GOSUB DisableWatchdog
+
+;load program (if FLASH selected than load only debug symbols)
+IF "&load_to"=="flash"
+(
+   Data.Load.Elf &elf_file /GLOBTYPES /NOCODE
+)
+ELSE
+(
+   ; initialize internam SRAM
+   Data.Load.Elf &elf_file EA:0x1FFF8000--0x20006FFF /GLOBTYPES
+)
+
+
+WinCLEAR
+data.list
+WinPOS 84.125 0.0 63. 41. 0. 0. W001
+Per , /SPOTLIGHT
+
+WinPOS 84.25 45.0 63. 12. 0. 0. W000
+Register /SPOTLIGHT
+
+; simulate reset event
+Register.Set PC  __startup
+; use this for GHS and GCC
+Register.Set R13 __StackLimit
+
+ENDDO
+
+FlashDeclaration:
+
+  PRIVATE &FlashDriver &PFlashSize &DFlashSize &PFlashAsDFlash
+
+  &PFlashAsDFlash=0x00
+  IF CPUIS("S32K148")
+  (
+    &FlashDriver="s32k.bin"
+    &PFlashSize=0x200000
+    &DFlashSize=0x80000
+  )
+  ELSE
+  (
+    PRINT %ERROR "FLASH size of CPU type is not supported by the script"
+    ENDDO
+  )
+
+  IF (&PFlashSize==(0x20000||0x40000||0x80000||0x100000||0x200000))
+  (
+    FLASH.Create 1. 0x00000000--(&PFlashSize-&PFlashAsDFlash-0x1) 0x1000 TARGET Quad
+  )
+
+  IF &DFlashSize>=0x10000
+    FLASH.Create 2. 0x10000000--0x1000FFFF 0x800 TARGET Quad
+
+  FLASH.TARGET 0x1FFFF000 0x20000000 0x1000 ~~/demo/arm/flash/quad/&FlashDriver
+
+  RETURN
+
+DisableBootrom:
+  Data.Set SD:0x4007F010 %LE %Long 0x6
+  Data.Set SD:0x4007F014 %LE %Long 0x0
+  RETURN
+
+DisableWatchdog:
+(
+  LOCAL &tmp1 &tmp2
+  &tmp1=Data.Long(ST:0x20000000)
+  &tmp2=Data.Long(ST:0x20000004)
+  Register.SWAP
+  ; The watchdog has a restrictive timing. It has to be configured and unlocked within a peripod
+  ; of 128 cycles. Therefor the unlock sequence need to be done by a small target program.
+  Data.Assemble ST:0x20000000  str  r1,[r0]  ;SD:0x40052004 = 0xD928C520   (Key)
+  Data.Assemble ,              str  r3,[r2]  ;SD:0x40052000 = 0x00002120   (Control register)
+  Data.Assemble ,              str  r5,[r4]  ;SD:0x40052008 = 0x0000FFFF   (Timeout value)
+  Data.Assemble ,              bkpt #0
+  Register.Set PC 0x20000000
+  Register.Set SP 0x20001000
+  Register.Set R0 0x40052004
+  Register.Set R1 0xD928C520
+  Register.Set R2 0x40052000
+  Register.Set R3 0x00002120
+  Register.Set R4 0x40052008
+  Register.Set R5 0x0000FFFF
+  Go.direct
+  WAIT !RUN()
+
+  Data.Set ST:0x20000000 %Long &tmp1
+  Data.Set ST:0x20000004 %Long &tmp2
+  Register.SWAP
+
+  RETURN
+)
+
