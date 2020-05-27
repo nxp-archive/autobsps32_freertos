@@ -27,23 +27,60 @@ MAP     := $(PROJECT).map
 compiler := gcc
 
 # Default platform
-platform := s32k144HT
+platform := s32k144
 
-PROC := cortex-m4
-CPU_DEFINE := CPU_S32K144HT
-CPU_file_name := cortex-m4
+#list of platform
+platforms_list := s32k116 s32k118 s32k142 s32k144 s32k144w s32k146 s32k148
 
+# Compiler checking
+ifneq ($(filter $(platform),$(platforms_list)),$(platform))
+$(error Undefined platform type: '$(platform)', use one from: $(platforms_list))
+endif
+
+ifeq ($(platform),s32k116)
+	PROC := cortex-m0plus
+	CPU_DEFINE := CPU_S32K116
+	CPU_file_name := cortex-m0plus
+endif
+
+ifeq ($(platform),s32k118)
+	PROC := cortex-m0plus
+	CPU_DEFINE := CPU_S32K118
+	CPU_file_name := cortex-m0plus
+endif
+
+ifeq ($(platform),s32k142)
+	PROC := cortex-m4
+	CPU_DEFINE := CPU_S32K142
+	CPU_file_name := cortex-m4
+endif
+
+ifeq ($(platform),s32k144)
+	PROC := cortex-m4
+	CPU_DEFINE := CPU_S32K144
+	CPU_file_name := cortex-m4
+endif
+
+ifeq ($(platform),s32k144w)
+	PROC := cortex-m4
+	CPU_DEFINE := CPU_S32K144W
+	CPU_file_name := cortex-m4
+endif
+
+ifeq ($(platform),s32k146)
+	PROC := cortex-m4
+	CPU_DEFINE := CPU_S32K146
+	CPU_file_name := cortex-m4
+endif
+
+ifeq ($(platform),s32k148)
+	PROC := cortex-m4
+	CPU_DEFINE := CPU_S32K148
+	CPU_file_name := cortex-m4
+endif
 
 # Default load type
 load_type := flash
-
-# List of supported load types
-load_types := ram flash
-
-# Load type checking
-ifneq ($(filter $(load_type),$(load_types)),$(load_type))
-$(error Undefined load type: '$(load_type)', use one from: $(load_types))
-endif
 
 # Common directories containing source/header files
 DIR_COMPILER := Freescale_Code/compilers
@@ -54,7 +91,6 @@ DIR_CPU      := Freescale_Code/cpu
 DIR_WDOG     := Freescale_Code/drivers/wdog
 DIR_SRC      := ../../Source
 DIR_MEM      := $(DIR_SRC)/portable/MemMang
-DIR_MIN      := ../Common/Minimal
 
 # Please edit path to Lauterbach Trace32 software if necessary
 EXPECT_DBG   := T32SYS
@@ -109,12 +145,41 @@ CORE_ASFLAGS := -DCORE_ASFLAG
 APP_CFLAGS   := -DAPP_CFLAG
 CORE_CFLAGS  := -DCORE_CFLAG
 
+# Platform specific
+ifeq ($(platform),s32k116)
+DIR_CMXX := $(DIR_SRC)/portable/GCC/ARM_CM0
+endif
+
+ifeq ($(platform),s32k118)
+DIR_CMXX := $(DIR_SRC)/portable/GCC/ARM_CM0
+endif
+
+ifeq ($(platform),s32k142)
 CFLAGS       += -fomit-frame-pointer -mfloat-abi=softfp
 DIR_CMXX := $(DIR_SRC)/portable/GCC/ARM_CM4F
-
-ifeq ($(load_type),flash)
-CFLAGS += -DAPP_FLASH
 endif
+
+ifeq ($(platform),s32k144)
+CFLAGS       += -fomit-frame-pointer -mfloat-abi=softfp
+DIR_CMXX := $(DIR_SRC)/portable/GCC/ARM_CM4F
+endif
+
+ifeq ($(platform),s32k144w)
+CFLAGS       += -fomit-frame-pointer -mfloat-abi=softfp
+DIR_CMXX := $(DIR_SRC)/portable/GCC/ARM_CM4F
+endif
+
+ifeq ($(platform),s32k146)
+CFLAGS       += -fomit-frame-pointer -mfloat-abi=softfp
+DIR_CMXX := $(DIR_SRC)/portable/GCC/ARM_CM4F
+endif
+
+ifeq ($(platform),s32k148)
+CFLAGS       += -fomit-frame-pointer -mfloat-abi=softfp
+DIR_CMXX := $(DIR_SRC)/portable/GCC/ARM_CM4F
+endif
+
+CFLAGS += -DAPP_FLASH
 
 # GCC related includes
 INCLUDES := -I$(GCC_PATH)/arm-none-eabi/include
@@ -136,27 +201,9 @@ SRC_APP_C += $(DIR_COMMON)/startup.c $(DIR_MEM)/heap_2.c
 SRC_APP_C += $(DIR_WDOG)/wdog.c
 
 ###############################################################################
-# List of the specific application files
+# Application file
 ###############################################################################
-
-ifeq ($(mode),full)
-
-ifeq ($(load_type),ram)
-$(error The full demo can't be run from RAM)
-endif
-
-SRC_APP_C += ParTest.c
-SRC_APP_C += $(DIR_MIN)/BlockQ.c $(DIR_MIN)/PollQ.c $(DIR_MIN)/semtest.c
-SRC_APP_C += $(DIR_MIN)/blocktim.c $(DIR_MIN)/countsem.c $(DIR_MIN)/GenQTest.c
-SRC_APP_C += $(DIR_MIN)/QPeek.c $(DIR_MIN)/recmutex.c $(DIR_MIN)/TimerDemo.c
-SRC_APP_C += $(DIR_MIN)/death.c $(DIR_MIN)/dynamic.c
-SRC_APP_C += main-full.c
-
-else
-
 SRC_APP_C += main_blinky.c
-
-endif
 
 # List of the objects files to be compiled/assembled
 OBJECTS_CORE_ASM := $(SRC_CORE_ASM:.s=.o)
