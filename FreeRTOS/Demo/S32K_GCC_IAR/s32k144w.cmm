@@ -1,4 +1,4 @@
-; Script for programming of KFA (S32K144).
+; Script for programming of KFA (S32K144W).
 ;
 ; $Author: Marius Rotaru $
 ; $Date: 2015-04-15 $
@@ -25,13 +25,16 @@ ENTRY &load_to &elf_file &load_params &core_no
 ;=========================================================================
 ; System settings
 ;=========================================================================
-;cpu settings - cortexm4, S32K144
+;cpu settings - cortexm4, S32K144W
 system.reset
 SYStem.Option TRST off
 SYStem.Option ResBreak off
 SYStem.Option WaitReset ON
-SYStem.CPU S32K144
-;SYStem.CONFIG MEMORYACCESSPORT 3.
+SYStem.CPU S32K144W
+IF CABLE.TWOWIRE()
+  SYStem.CONFIG DEBUGPORTTYPE SWD
+ELSE
+  SYStem.CONFIG DEBUGPORTTYPE JTAG
 SYStem.JtagClock 100KHz
 sys.up
 
@@ -109,7 +112,7 @@ system.reset
 SYStem.Option TRST off
 SYStem.Option ResBreak off
 SYStem.Option WaitReset ON
-SYStem.CPU S32K144
+SYStem.CPU S32K144W
 
 SYStem.JtagClock 100KHz
 sys.up
@@ -149,7 +152,7 @@ FlashDeclaration:
   PRIVATE &FlashDriver &PFlashSize &DFlashSize &PFlashAsDFlash
 
   &PFlashAsDFlash=0x00
-  IF CPUIS("S32K144")
+  IF CPUIS("S32K144W")
   (
     &FlashDriver="s32k.bin"
     &PFlashSize=0x80000

@@ -7,7 +7,7 @@
 * Purpose: Configure interrupt vector table for Kinetis.
 ******************************************************************************/
 
-#include "s32k144HT_vectors.h"
+#include "s32k144w_vectors.h"
 #include "common.h"
 
 /******************************************************************************

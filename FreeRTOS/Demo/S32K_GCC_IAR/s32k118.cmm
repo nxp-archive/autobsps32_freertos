@@ -23,12 +23,13 @@ ENTRY &load_to &elf_file &load_params &core_no
 ; System settings
 ;=========================================================================
 
-;cpu settings - S32K116, S32K116
+;cpu settings - S32K118, S32K118
 system.reset
 SYStem.Option TRST on
 SYStem.Option ResBreak on
 SYStem.Option WaitReset ON
 SYS.CPU S32K118
+system.config.debugporttype SWD
 SYStem.JtagClock 4MHz
 sys.up
 
@@ -149,6 +150,7 @@ SYStem.Option TRST off
 SYStem.Option ResBreak on
 SYStem.Option WaitReset ON
 SYStem.CPU &derivative_cpu
+system.config.debugporttype SWD 
 SYStem.JtagClock 4MHz
 sys.up
 
