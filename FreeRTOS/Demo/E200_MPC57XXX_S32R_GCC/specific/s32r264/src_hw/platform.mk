@@ -1,5 +1,5 @@
 #
-#  Copyright 2018 NXP
+#  Copyright 2018, 2020 NXP
 #
 
 OBJFILES_PLATFORM  :=  $(OUT_ROOT)/obj/$(TEST_NAME)/hw_flashrchw.o \

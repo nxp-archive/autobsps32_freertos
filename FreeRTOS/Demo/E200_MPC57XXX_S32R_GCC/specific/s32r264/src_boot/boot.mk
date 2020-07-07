@@ -1,5 +1,5 @@
 #
-#  Copyright 2018 NXP
+#  Copyright 2018, 2020 NXP
 #
 
 OBJFILES_BOOT := $(OUT_ROOT)/obj/$(TEST_NAME)/coreMasterStartup.o \

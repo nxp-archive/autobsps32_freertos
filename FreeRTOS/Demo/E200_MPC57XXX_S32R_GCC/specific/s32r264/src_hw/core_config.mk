@@ -1,5 +1,5 @@
 #
-#  Copyright 2018 NXP
+#  Copyright 2018, 2020 NXP
 #
 
 CORE_LIST := z4a z7a z7b
