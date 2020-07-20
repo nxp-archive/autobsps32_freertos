@@ -299,25 +299,20 @@
         se_beq      xPortRaisePrivilege
         se_cmpi     r3, 2 # portSYSCALL_LOWER_PRIVILEGE
         se_beq      vPortLowerPrivilege
+        se_cmpi     r3, 3 # portSYSCALL_IS_PRIVILEGE
+        se_beq      vPortIsPrivilege
     xPortSyscallEnd:
         se_b        xPortSyscall                # infinite loop for unhandled syscall numbers
 .endfunc
 
-# Checks if called from unprivileged context.
-# If so, raises privilege level and returns false.
-# If not, does nothing and returns true.
+# Raises privilege level from unprivilege level.
 .align  4
 .func xPortRaisePrivilege, xPortRaisePrivilege
     xPortRaisePrivilege:                        # Interrupts implicitly disabled on entry, context synchronized by syscall
-        se_li       r3, 1                       # set default return value
         mfsrr1      r4                          # load stored MSR from SRR1
-        se_btsti    r4, 17                      # extract Problem State: 0 = supervisor mode, 1 = user mode. Updates CR0
-        se_beq      1f                          # skip if already in supervisor mode
-        mfsrr1      r4                          # otherwise reload stored MSR from SRR1
         se_bclri    r4, 17                      # set supervisor mode
         mtsrr1      r4                          # store back to SRR1
-        se_li       r3, 0                       # set return to false
-    1:  se_rfi                                  # End of system call handler, restores MSR from SRR1, synchronizes context
+        se_rfi                                  # End of system call handler, restores MSR from SRR1, synchronizes context
 .endfunc
 
 # Lowers privilege level to user mode
@@ -328,6 +323,20 @@
         se_bseti    r4, 17                      # set Problem State: 1 = user mode
         mtsrr1      r4                          # store back to SRR1
         se_rfi                                  # End of system call handler, restores MSR from SRR1, synchronizes context
+.endfunc
+
+# Check whether the processor is already privileged.
+# If processor is unprivilege return false
+# If in privilege, return true
+.align  4
+.func vPortIsPrivilege, vPortIsPrivilege
+    vPortIsPrivilege:                        # Interrupts implicitly disabled on entry, context synchronized by syscall
+        se_li       r3, 1                       # set default return value
+        mfsrr1      r4                          # load stored MSR from SRR1
+        se_btsti    r4, 17                      # extract Problem State: 0 = supervisor mode, 1 = user mode. Updates CR0
+        se_beq      1f                          # if in supervisor mode return to true
+        se_li       r3, 0                       # else set return to false
+        1:  se_rfi                                  # End of system call handler, restores MSR from SRR1, synchronizes context
 .endfunc
 
 # The system call handler is invoked from task context via portYIELD or portYIELD_WITHIN_API.  This

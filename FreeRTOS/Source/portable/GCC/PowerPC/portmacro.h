@@ -70,6 +70,7 @@ enum portSYSCALL_e
     portSYSCALL_YIELD = 0,
     portSYSCALL_RAISE_PRIVILEGE = 1,
     portSYSCALL_LOWER_PRIVILEGE = 2,
+    portSYSCALL_IS_PRIVILEGE = 3,
     portSYSCALL_NUM_SYSCALLS
 };
 
@@ -342,27 +343,14 @@ static portFORCE_INLINE UBaseType_t portDECREMENT_CRITICAL_NESTING( void )
 #define portTASK_FUNCTION_PROTO( vFunction, pvParameters ) void vFunction( void *pvParameters )
 #define portTASK_FUNCTION( vFunction, pvParameters )       void vFunction( void *pvParameters )
 
-/* Set the privilege level to user mode if xRunningPrivileged is false. */
-static portFORCE_INLINE void vPortResetPrivilege( const BaseType_t xRunningPrivileged )
-{
-    if ( xRunningPrivileged == pdFALSE )
-    {
-        (void)xPortSyscall( portSYSCALL_LOWER_PRIVILEGE );
-    }
-}
+/* Calls the port specific code to raise the privilege. */
+#define portRAISE_PRIVILEGE() (void) xPortSyscall( portSYSCALL_RAISE_PRIVILEGE )
 
-/*
- * Checks to see if being called from the context of an unprivileged task, and
- * if so raises the privilege level and returns false - otherwise does nothing
- * other than return true.
- */
-static portFORCE_INLINE BaseType_t xPortRaisePrivilege( void )
-{
-    /* syscalls are context synchronizing on se_sc entry and rfi exit
-       no need for explicit context synchronization after changing
-       privilege in handler. */
-    return xPortSyscall( portSYSCALL_RAISE_PRIVILEGE );
-}
+/* Calls the port specific code to reset the privilege. */
+#define portRESET_PRIVILEGE()  (void)xPortSyscall( portSYSCALL_LOWER_PRIVILEGE )
+
+/* Check whether the processor is already privileged. */
+#define portIS_PRIVILEGED() (BaseType_t) xPortSyscall( portSYSCALL_IS_PRIVILEGE )
 
 #ifdef __cplusplus
 }
