@@ -89,10 +89,6 @@ OSBusFaultException:
 OSUsageFaultException:
 	b OSUsageFaultException
 
-.globl OSSVCallException
-OSSVCallException:
-	b OSSVCallException
-
 .globl OSDebugMonitorException
 OSDebugMonitorException:
 	b OSDebugMonitorException

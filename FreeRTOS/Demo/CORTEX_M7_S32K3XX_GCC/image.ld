@@ -3,7 +3,7 @@
 *   Freescale(TM) and the Freescale logo are trademarks of Freescale Semiconductor, Inc.
 *   All other product or service names are the property of their respective owners.
 *   (c) Copyright 2014 - 2015 Freescale Semiconductor Inc.
-*   Copyright 2017 NXP
+*   Copyright 2017, 2020 NXP
 *   All Rights Reserved.
 *
 *   You can use this example for any purpose on any computer system with the
