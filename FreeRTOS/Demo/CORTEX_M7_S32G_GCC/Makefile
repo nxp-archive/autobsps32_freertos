@@ -21,7 +21,7 @@
 ####################################################################################
 CYGPATH := C:/cygwin64/bin/cygpath.exe
 #Path to Tool Directory
-CrossToolDir := C:/tools/gcc-6.3-arm32-eabi
+CrossToolDir := C:/tools/gcc-9.2-arm32-eabi-1649
 #Path to FreeRtos Directory
 OsPath := D:/workspace_rtos/freertos-git.freescale.com/FreeRTOS
 OutDir := Output
@@ -33,7 +33,7 @@ LD := $(CrossToolDir)/bin/arm-none-eabi-ld.exe
 
 OSCFLAGS := -g -O3 -mcpu=cortex-m7 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard -Wall -I"$(OsPath)/Source/include" -I"$(OsPath)/Source/portable/GCC/ARM_CM7/r0p1" -I"include"
 OSASFLAGS := -g -mcpu=cortex-m7 -mthumb -mfpu=fpv5-sp-d16 -mfloat-abi=hard 
-LDFLAGS := -nostartfiles -T image.ld -Wl,-Map=$(OutDir)/image.map -L$(CrossToolDir)/arm-none-eabi/newlib/lib/thumb/v8-m.main/fpv5/hard -lc -L$(CrossToolDir)/lib/gcc/arm-none-eabi/6.3.1/thumb/v8-m.main/fpv5/hard -lgcc
+LDFLAGS := -nostartfiles -T image.ld -Wl,-Map=$(OutDir)/image.map -L$(CrossToolDir)/arm-none-eabi/newlib/lib/thumb/v8-m.main+dp/hard -lc -L$(CrossToolDir)/lib/gcc/arm-none-eabi/9.2.0/thumb/v8-m.main+dp/hard -lgcc
 
 OBJFILES_OS := $(OutDir)/tasks.o \
 			   $(OutDir)/timers.o \
